@@ -1,0 +1,6 @@
+[submodule "test/googletest"]
+	path = test/googletest
+	url = https://github.com/google/googletest.git
+[submodule "ROSS"]
+	path = external/ROSS
+	url = https://github.com/carothersc/ROSS.git
