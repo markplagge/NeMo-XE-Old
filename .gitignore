@@ -28,3 +28,11 @@
 *.app
 
 \.DS_Store
+
+template2/
+
+template1/
+
+cmake-build-debug/
+
+\.idea/

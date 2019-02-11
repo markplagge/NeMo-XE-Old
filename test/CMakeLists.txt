@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 3.2)
-project(divider_tests)
+project(nemo_tests)
 
 add_subdirectory(./googletest)
 
-include_directories(${DIVISION_HEADERS_DIR})
+include_directories(${NEMO_HEADERS_DIR})
 include_directories(./googletest/googletest/include)
 
-set(SOURCE_FILES main.cpp src/divider_tests.cpp)
+set(SOURCE_FILES main.cpp )
 
-add_executable(divider_tests ${SOURCE_FILES})
-target_link_libraries(divider_tests division gtest)
-install(TARGETS divider_tests DESTINATION bin)
+add_executable(nemo_tests ${SOURCE_FILES})
+target_link_libraries(nemo_tests gtest)
+install(TARGETS nemo_tests   DESTINATION bin)

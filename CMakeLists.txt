@@ -39,13 +39,11 @@ if(AUTO_INIT AND GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
     option(USE_EXTERNAL_C++_JSON "Use external JSON C++ libraries")
     if(GIT_SUBMODULE)
         message(STATUS "Submodule update")
-        execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recu
-rsive
+        execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
                         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
                         RESULT_VARIABLE GIT_SUBMOD_RESULT)
         if(NOT GIT_SUBMOD_RESULT EQUAL "0")
-            message(FATAL_ERROR "git submodule update --init failed with ${GIT_S
-UBMOD_RESULT}, please checkout submodules")
+            message(FATAL_ERROR "git submodule update --init failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
         endif()
     endif()
 else(message(WARNING "CMAKE was unable to find GIT - please run git submodule up
@@ -55,7 +53,7 @@ endif()
 ### ROSS SUBMODULE ###
 
 if(NOT EXISTS "${PROJECT_SOURCE_DIR}/external/ROSS/CMakeLists.txt")
-    message(FATAL_ERROR "The submodules were not downloaded! GIT_SUBMODULE was 
+    message(FATAL_ERROR "The submodules were not downloaded! GIT_SUBMODULE was
     turned off or failed. Please update submodules and try again. You may also download ROSS directly into /external/ROSS,
     or ln -s ~PATH_TO_ROSS~ ~NEMO_ROOT_FOLDER/external/ROSS")
 endif()
@@ -65,8 +63,8 @@ if(BUILD_TESTING)
     add_subdirectory(test)
 endif(BUILD_TESTING)
 
-set (AUTO_MPI 1 CACHE BOOL "Automatically configure MPI libs/headers? 
-	ALternatively, you need to set the C compiler to the location of 
+set (AUTO_MPI 1 CACHE BOOL "Automatically configure MPI libs/headers?
+	ALternatively, you need to set the C compiler to the location of
 	mpicc, and the C++ compiler to mpicxx. ")
 if(AUTO_MPI)
     find_package(MPI)
@@ -82,19 +80,11 @@ endif(AUTO_MPI)
 
 ### CMAKE SUBDIRS & SUB PROJECTS
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/ROSS)
 set(EXTERNAL_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/external)
+### MPI AUTOMATIC MODE
 if(AUTO_MPI)
-    target_link_libraries(ROSS ${MPI_LIBRARIES})
-
-    if(MPI_COMPILE_FLAGS)
-        set_target_properties(ROSS PROPERTIES
-                COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
-    endif()
-
-    if(MPI_LINK_FLAGS)
-        set_target_properties(ROSS PROPERTIES
-                LINK_FLAGS "${MPI_LINK_FLAGS}")
-    endif()
+    #target_link_libraries(ROSS MPI_C)
 
 endif()
 
