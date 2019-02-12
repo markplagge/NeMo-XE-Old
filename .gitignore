@@ -36,3 +36,7 @@ template1/
 cmake-build-debug/
 
 \.idea/
+
+cmake-build-debug-triton/
+
+cmake-build-release/

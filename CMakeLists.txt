@@ -7,11 +7,9 @@ cmake_minimum_required (VERSION 3.1)
 set (PROJECT_NAME "NeMo2")
 set (PROJECT_DESCRIPTION "A Parallel discrete event simulation based model of neuromorphic hardware.")
 set (PROJECT_AUTHOR "Mark Plagge")
-set(PROJECT_VERSION_MAJOR "0")
-set(PROJECT_VERSION_MINOR "0")
-set(PROJECT_VERSION_PATCH "1")
 
-project (${PROJECT_NAME} C CXX)
+
+project (${PROJECT_NAME} VERSION 0.1.0 LANGUAGES C CXX)
 
 
 # ===========================
@@ -28,6 +26,7 @@ include(CTest)
 
 
 ## Set up submodules & Dependencies
+option(USE_EXTERNAL_C++_JSON "Use external JSON C++ libraries" OFF)
 
 set (AUTO_INIT 1 CACHE BOOL "Automatic Git submodule init? Will break if no external
 	network connection is available")
@@ -36,7 +35,7 @@ find_package(Git QUIET)
 if(AUTO_INIT AND GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
 # Update submodules as needed
     option(GIT_SUBMODULE "Check submodules during build" ON)
-    option(USE_EXTERNAL_C++_JSON "Use external JSON C++ libraries")
+
     if(GIT_SUBMODULE)
         message(STATUS "Submodule update")
         execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
@@ -67,7 +66,7 @@ set (AUTO_MPI 1 CACHE BOOL "Automatically configure MPI libs/headers?
 	ALternatively, you need to set the C compiler to the location of
 	mpicc, and the C++ compiler to mpicxx. ")
 if(AUTO_MPI)
-    find_package(MPI)
+    find_package(MPI REQUIRED)
     add_library(mpi-l INTERFACE IMPORTED)
     set_property(TARGET mpi-l PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${MPI_C_INCLUDE_PATH})
     add_library(mpi SHARED IMPORTED)
@@ -76,17 +75,23 @@ if(AUTO_MPI)
     message("MPI Include Path: ${MPI_C_INCLUDE_PATH}")
     message("MPI INCLUDE CXX PATH: ${MPI_CXX_INCLUDE_PATH}")
     include_directories(${MPI_INCLUDE_PATH})
+
+    include_directories(SYSTEM ${MPI_INCLUDE_PATH})
+    link_libraries(mpi)
+        #target_link_libraries(ROSS MPI_C)
+        #Modern MPI
+        #target_link_libraries(main PRIVATE MPI_C)
+
 endif(AUTO_MPI)
 
 ### CMAKE SUBDIRS & SUB PROJECTS
+## External Libs
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external)
+## ROSS Libs
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/ROSS)
 set(EXTERNAL_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/external)
-### MPI AUTOMATIC MODE
-if(AUTO_MPI)
-    #target_link_libraries(ROSS MPI_C)
 
-endif()
+
 
 
 
@@ -103,4 +108,31 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
 # ==========================
 # Doxygen Config
 # ==========================
+get_property(doxygen_src_files GLOBAL PROPERTY DOC_SRCS)
+string(REPLACE ";" " " doxygen_src_files ${doxygen_src_files})
+#message(${doxygen_src_files})
+# first we can indicate the documentation build as an option and set it to ON by default
+option(BUILD_DOC "Build documentation" ON)
+if(BUILD_DOC)
+    # check if Doxygen is installed
+    find_package(Doxygen)
+    if (DOXYGEN_FOUND)
+        # set input and output files
+        set(DOXYGEN_IN ${CMAKE_SOURCE_DIR}/doc/Doxyfile.in)
+        set(DOXYGEN_OUT ${CMAKE_CURRENT_BINARY_DIR}/doc/Doxyfile)
 
+        # request to configure the file
+        configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
+        message("Doxygen build started")
+
+        # note the option ALL which allows to build the docs together with the application
+        add_custom_target( doc_doxygen ALL
+                COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
+                WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+                COMMENT "Generating documentation with Doxygen"
+                VERBATIM )
+    else (DOXYGEN_FOUND)
+        message("Doxygen need to be installed to generate the doxygen documentation")
+    endif (DOXYGEN_FOUND)
+
+endif()
