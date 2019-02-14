@@ -28,13 +28,13 @@ include(CTest)
 ## Set up submodules & Dependencies
 option(USE_EXTERNAL_C++_JSON "Use external JSON C++ libraries" OFF)
 
-set (AUTO_INIT 1 CACHE BOOL "Automatic Git submodule init? Will break if no external
+set (AUTO_INIT 0 CACHE BOOL "Automatic Git submodule init? Will break if no external
 	network connection is available")
 
 find_package(Git QUIET)
 if(AUTO_INIT AND GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
 # Update submodules as needed
-    option(GIT_SUBMODULE "Check submodules during build" ON)
+    option(GIT_SUBMODULE "Check submodules during build" OFF)
 
     if(GIT_SUBMODULE)
         message(STATUS "Submodule update")

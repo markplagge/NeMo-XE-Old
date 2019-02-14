@@ -7,12 +7,13 @@ cmake_minimum_required(VERSION 3.12.0 FATAL_ERROR)
 include_directories(${ROSS_SOURCE_DIR} ${ROSS_BINARY_DIR})
 include_directories(${EXTERNAL_INCLUDE})
 message(" --- ROSS AT ${ROSS_SOURCE_DIR}")
-        ## NEMO COMPILE-TIME CONFIG SETTINGS ##
+## NEMO COMPILE-TIME CONFIG SETTINGS ##
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
 ## Configure options for global compile
 find_package(OpenMP)
 
+# Special Config options for OMP offload tests
 
 
 ## Include the TN Model JSON Parsing Library
@@ -25,10 +26,10 @@ set(nemo_app_srcs main.cpp globals.h globals.cpp)
 
 add_library(nemo2_lib STATIC ${nemo_lib_srcs})
 add_executable(nemo2 ${nemo_app_srcs})
-target_link_libraries(nemo2_lib ROSS)
+target_link_libraries(nemo2_lib ROSS OpenMP::OpenMP_CXX)
 
 target_link_libraries(nemo2 ROSS nemo2_lib)
-target_link_libraries(nemo2 PRIVATE OpenMP::OpenMP_CXX)
+#target_link_libraries(nemo2 PRIVATE OpenMP::OpenMP_CXX)
 
 target_include_directories(nemo2 PUBLIC ${EXTERNAL_INCLUDE} ${EXTERNAL_INCLUDE}/ROSS})
 
