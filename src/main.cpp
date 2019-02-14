@@ -40,9 +40,101 @@ tw_lptype mylps[] = {
         {0},
 };
 
+#include <random>
+int test_omp_target(int n){
+// Simple vector multiply
+// Input vector X, Y
+// Result vector is Z
+float X[n],Y[n],Z[n];
+    std::default_random_engine generator;
+    std::uniform_real_distribution<float> distribution(1,65535.0);
 
+#pragma parallel for
+    for (int i =0; i < n; i ++){
+        X[i] = distribution(generator);
+        Y[i] = distribution(generator);
+        Z[i] = 0;
+    }
+// GPU:
+int i;
+#pragma omp target
+#pragma omp parallel for private(i)
+for (i = 0; i < n; i ++) {
+    Z[i] = X[i] * Y[i];
+    //Z[i] =  sqrt(Z[i]);
+
+}
+
+
+
+return Z[0];
+}
+#include "math.h"
+
+float extest2(int n) {
+    int m = n;
+    float A[n][n];
+    float Anew[n][n];
+    float error = 000;
+    int iter = 0;
+#pragma omp target
+#pragma omp parallel for
+    for(int j = 0; j < n; j ++){
+        for(int i = 0; i < m; i ++){
+            A[j][i]= (float)rand() / (float) rand();
+            Anew[j][i] = 0;
+        }
+    }
+
+    int iter_max = 65535;
+    float tol = 0.1;
+
+    while (error > tol && iter < iter_max) {
+        error = 0.0;
+#pragma omp target
+        {
+#pragma omp parallel for reduction(max:error)
+            for (int j = 1; j < n - 1; j++) {
+                for (int i = 1; i < m - 1; i++) {
+                    Anew[j][i] = 0.25 * (A[j][i + 1] + A[j][i - 1]
+                                         + A[j - 1][i] + A[j + 1][i]);
+                    error = fmax(error, fabs(Anew[j][i] - A[j][i]));
+                }
+            }
+#pragma omp parallel for
+            for (int j = 1; j < n - 1; j++) {
+                for (int i = 1; i < m - 1; i++) {
+                    A[j][i] = Anew[j][i];
+                }
+            }
+        }
+        if (iter++ % 100 == 0) printf("%5d, %0.6f\n", iter, error);
+    }
+
+#pragma omp target teams distribute
+    for( int j = 1; j < n-1; j++)
+    {
+#pragma omp parallel for reduction(max:error)
+        for( int i = 1; i < m-1; i++ ) {
+            Anew[j][i] = 0.25 * ( A[j][i+1] + A[j][i-1]
+                                  + A[j-1][i] + A[j+1][i]);
+            error = fmax( error, fabs(Anew[j][i] - A[j][i])); }
+    }
+#pragma omp target teams distribute
+    for( int j = 1; j < n-1; j++)
+    {
+#pragma omp parallel for
+        for( int i = 1; i < m-1; i++ ) {
+            A[j][i] = Anew[j][i]; }
+    }
+
+    return error;
+}
 
 int main(int argc, char *argv[]){
+    cout <<"Test omp\n";
+    test_omp_target(165535);
+    extest2(1024*512);
   tw_init(&argc, &argv);
   tw_define_lps(nlp_per_pe,sizeof(nemo_message));
     for(int i = 0; i < g_tw_nlp; i++)
