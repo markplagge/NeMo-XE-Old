@@ -62,11 +62,11 @@ if(BUILD_TESTING)
     add_subdirectory(test)
 endif(BUILD_TESTING)
 
-set (AUTO_MPI 1 CACHE BOOL "Automatically configure MPI libs/headers?
+set (AUTO_MPI 0 CACHE BOOL "Automatically configure MPI libs/headers?
 	ALternatively, you need to set the C compiler to the location of
 	mpicc, and the C++ compiler to mpicxx. ")
 if(AUTO_MPI)
-    find_package(MPI REQUIRED)
+    find_package(MPI QUIET)
     add_library(mpi-l INTERFACE IMPORTED)
     set_property(TARGET mpi-l PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${MPI_C_INCLUDE_PATH})
     add_library(mpi SHARED IMPORTED)
@@ -89,6 +89,7 @@ endif(AUTO_MPI)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external)
 ## ROSS Libs
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/ROSS)
+set_target_properties(ROSS PROPERTIES ROSS_TIMING OFF)
 set(EXTERNAL_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/external)
 
 

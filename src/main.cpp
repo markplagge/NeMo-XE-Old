@@ -77,7 +77,7 @@ float extest2(int n) {
     float Anew[n][n];
     float error = 000;
     int iter = 0;
-#pragma omp target
+
 #pragma omp parallel for
     for(int j = 0; j < n; j ++){
         for(int i = 0; i < m; i ++){
@@ -88,7 +88,7 @@ float extest2(int n) {
 
     int iter_max = 65535;
     float tol = 0.1;
-
+    cout <<"init dual rail test \n";
     while (error > tol && iter < iter_max) {
         error = 0.0;
 #pragma omp target
