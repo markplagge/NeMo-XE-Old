@@ -1,5 +1,5 @@
-cmake_minimum_required (VERSION 3.1)
-
+cmake_minimum_required (VERSION 3.10)
+#### NeMo2 Main Project ######
 # =====
 # NeMo Configuration and defs
 # =====
@@ -7,10 +7,9 @@ cmake_minimum_required (VERSION 3.1)
 set (PROJECT_NAME "NeMo2")
 set (PROJECT_DESCRIPTION "A Parallel discrete event simulation based model of neuromorphic hardware.")
 set (PROJECT_AUTHOR "Mark Plagge")
+set(CMAKE_CXX_STANDARD 14)
 
-
-project (${PROJECT_NAME} VERSION 0.1.0 LANGUAGES C CXX)
-
+project (${PROJECT_NAME} VERSION 0.1.0 LANGUAGES CXX C)
 
 # ===========================
 # CMake Modules and required packages config
@@ -30,7 +29,27 @@ option(USE_EXTERNAL_C++_JSON "Use external JSON C++ libraries" OFF)
 
 set (AUTO_INIT 0 CACHE BOOL "Automatic Git submodule init? Will break if no external
 	network connection is available")
-
+set (AUTO_MPI 1 CACHE BOOL "Automatically configure MPI libs/headers?
+	ALternatively, you need to set the C compiler to the location of
+	mpicc, and the C++ compiler to mpicxx. ")
+#if(AUTO_MPI)
+#    find_package(MPI QUIET)
+#    add_library(mpi-l INTERFACE IMPORTED)
+#    set_property(TARGET mpi-l PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${MPI_C_INCLUDE_PATH})
+#    add_library(mpi SHARED IMPORTED)
+#    set_property(TARGET mpi PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${MPI_C_INCLUDE_PATH})
+#    set_property(TARGET mpi PROPERTY IMPORTED_LOCATION ${MPI_C_LIBRARIES})
+#    message("MPI Include Path: ${MPI_C_INCLUDE_PATH}")
+#    message("MPI INCLUDE CXX PATH: ${MPI_CXX_INCLUDE_PATH}")
+#    include_directories(${MPI_INCLUDE_PATH})
+#
+#    include_directories(SYSTEM ${MPI_INCLUDE_PATH})
+#    link_libraries(mpi)
+#    #target_link_libraries(ROSS MPI_C)
+#    #Modern MPI
+#    #target_link_libraries(main PRIVATE MPI_C)
+#
+#endif(AUTO_MPI)
 find_package(Git QUIET)
 if(AUTO_INIT AND GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
 # Update submodules as needed
@@ -62,36 +81,17 @@ if(BUILD_TESTING)
     add_subdirectory(test)
 endif(BUILD_TESTING)
 
-set (AUTO_MPI 0 CACHE BOOL "Automatically configure MPI libs/headers?
-	ALternatively, you need to set the C compiler to the location of
-	mpicc, and the C++ compiler to mpicxx. ")
-if(AUTO_MPI)
-    find_package(MPI QUIET)
-    add_library(mpi-l INTERFACE IMPORTED)
-    set_property(TARGET mpi-l PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${MPI_C_INCLUDE_PATH})
-    add_library(mpi SHARED IMPORTED)
-    set_property(TARGET mpi PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${MPI_C_INCLUDE_PATH})
-    set_property(TARGET mpi PROPERTY IMPORTED_LOCATION ${MPI_C_LIBRARIES})
-    message("MPI Include Path: ${MPI_C_INCLUDE_PATH}")
-    message("MPI INCLUDE CXX PATH: ${MPI_CXX_INCLUDE_PATH}")
-    include_directories(${MPI_INCLUDE_PATH})
 
-    include_directories(SYSTEM ${MPI_INCLUDE_PATH})
-    link_libraries(mpi)
-        #target_link_libraries(ROSS MPI_C)
-        #Modern MPI
-        #target_link_libraries(main PRIVATE MPI_C)
-
-endif(AUTO_MPI)
 
 ### CMAKE SUBDIRS & SUB PROJECTS
 ## External Libs
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external)
 ## ROSS Libs
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/ROSS)
-set_target_properties(ROSS PROPERTIES ROSS_TIMING OFF)
-set(EXTERNAL_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/external)
+set_target_properties(ROSS PROPERTIES ROSS_timing OFF)
 
+set(ROSS_timing OFF CACHE BOOL "Disable ROSS Timing" FORCE6)
+set(EXTERNAL_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/external)
 
 
 
@@ -109,12 +109,18 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
 # ==========================
 # Doxygen Config
 # ==========================
+# @TODO: Put this in ./doc/CMakeLists.txt
 get_property(doxygen_src_files GLOBAL PROPERTY DOC_SRCS)
 string(REPLACE ";" " " doxygen_src_files ${doxygen_src_files})
-#message(${doxygen_src_files})
+message(${doxygen_src_files})
 # first we can indicate the documentation build as an option and set it to ON by default
 option(BUILD_DOC "Build documentation" ON)
 if(BUILD_DOC)
+
+    set(USE_MATHJAX "YES" CACHE  STRING "Use MathJax in documentation")
+    set(MATHJAX_FORMAT "NativeMML" CACHE STRING "MathJax format")
+        set(SORT_GROUP_NAMES "YES")
+    set(CLANG_ASSISTED_PARSNG 1)
     # check if Doxygen is installed
     find_package(Doxygen)
     if (DOXYGEN_FOUND)

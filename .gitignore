@@ -40,3 +40,17 @@ cmake-build-debug/
 cmake-build-debug-triton/
 
 cmake-build-release/
+
+cmake-build-db-mpicc-rtriton/
+
+cmake-build-default-rtriton/test/CMakeFiles/nemo_tests\.dir/
+
+cmake-build-default-rtriton/src/
+
+cmake-build-debug-dockerrem/
+
+cmake-build-debug-localmpi/
+
+cmake-build-default-rtriton/test/
+
+cmake-build-default-rtriton/

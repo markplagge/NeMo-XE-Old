@@ -1,4 +1,4 @@
-# Documentation for rock
+# Documentation for NeMo2
 # Requires Doxygen
 find_package(Doxygen)
 if (DOXYGEN_FOUND)

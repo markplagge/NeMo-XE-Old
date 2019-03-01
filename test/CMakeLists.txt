@@ -5,12 +5,15 @@ add_subdirectory(./googletest)
 
 include_directories(${NEMO_HEADERS_DIR})
 include_directories(./googletest/googletest/include)
+include_directories(../external/ROSS)
+include_directories(${ROSS_SOURCE_DIR} ${ROSS_BINARY_DIR})
+include_directories(${CMAKE_BINARY_DIR}/external/ROSS/core)
 
 set(SOURCE_FILES core_test.cpp)
 
 add_executable(nemo_tests ${SOURCE_FILES})
-target_include_directories(nemo_tests PUBLIC "./googletest/googletest/include" PUBLIC "./googletest/googlemock/include")
-target_link_libraries(nemo_tests gtest gmain)
+target_include_directories(nemo_tests PUBLIC "./googletest/googletest/include" PUBLIC "./googletest/googlemock/include" ${ROSS_SOURCE_DIR} ${ROSS_BINARY_DIR})
+target_link_libraries(nemo_tests gtest gtest_main nemo2_lib)
 install(TARGETS nemo_tests   DESTINATION bin)
 
 
