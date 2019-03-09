@@ -11,6 +11,9 @@
 
 #include <stdint.h>
 #include <type_traits>
+#include <string>
+#include <stdarg.h>  // For va_start, etc.
+#include <memory>    // For std::unique_ptr
 /** @defgroup global_macros Global Macro helper functions */
 #define JITTER(rng,c) tw_rand_unif((rng))
 /** @defgroup types Typedef Vars
@@ -21,14 +24,15 @@ typedef int_fast64_t
         nemo_id_type; //!< id type is used for local mapping functions - there should be $n$ of them depending on CORE_SIZE
 typedef int32_t nemo_volt_type; //!< volt_type stores voltage values for membrane potential calculations
 typedef int64_t nemo_weight_type;//!< seperate type for synaptic weights.
-typedef uint32_t nemo_thresh_type;//!< Type for weights internal to the neurons.
+typedef int32_t nemo_thresh_type;//!< Type for weights internal to the neurons.
 typedef uint16_t nemo_random_type;//!< Type for random values in neuron models.
 
 typedef uint64_t size_type; //!< size_type holds sizes of the sim - core size, neurons per core, etc.
 
 typedef uint64_t stat_type;
 /**@}*/
-
+template<typename ... Args>
+std::string string_format( const std::string& format, Args ... args );
 
 enum nemo_message_type{
     NEURON_SPIKE,
@@ -49,9 +53,19 @@ auto as_integer(Enumeration const value)-> typename std::underlying_type<Enumera
     return static_cast<typename std::underlying_type<Enumeration>::type>(value);
 }
 
+
+
 inline BF_Event_Status operator|(BF_Event_Status a, BF_Event_Status b){
     return static_cast<BF_Event_Status> (as_integer(a) | as_integer(b));
 }
+
+
+template <typename I, typename E>
+inline bool in_the(I a , E b){
+    return a & static_cast<std::underlying_type_t<E>>(b);
+}
+
+
 
 inline BF_Event_Status operator&(BF_Event_Status a, BF_Event_Status b){
     return static_cast<BF_Event_Status> (as_integer(a) & as_integer(b) );
@@ -128,7 +142,7 @@ typedef struct Nemo_Message {
     uint32_t nemo_event_status;
     unsigned int random_call_count;
     double debug_time;
-
+    std::string to_string();
 }nemo_message;
 
 // Helper functon for BF logic:

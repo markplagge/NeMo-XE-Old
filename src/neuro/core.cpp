@@ -27,14 +27,18 @@ void CoreLP::create_core(tw_lp *lp){
     //Now only TN Cores
     int coreLocalId = lp->id;
 
+
     auto ccore = new TrueNorthCore(coreLocalId);
+
     ccore->core_init(lp);
     this->core = ccore;
     this->active = 1;
 
 }
 
-
+void CoreLP::setCore(INeuroCoreBase *core) {
+    CoreLP::core = core;
+}
 
 
 TrueNorthCore::TrueNorthCore(int coreLocalId) : core_local_id(coreLocalId) {
@@ -51,6 +55,11 @@ void TrueNorthCore::core_init(tw_lp *lp) {
     std::cout << "Initializing core # " << get_core_from_gid(lp->gid) << "\n";
     //assuming linear mapping.
     this->core_local_id = get_core_from_gid(lp->gid);
+    this->has_self_firing_neuron = false;
+    //check to see if this is a self-firing neuron containing core:
+    for(int i = 0; i < NEURONS_PER_TN_CORE; i ++){
+        this->has_self_firing_neuron = this->has_self_firing_neuron | this->is_self_firing_neuron(i);
+    }
 
 }
 
@@ -118,27 +127,34 @@ void TrueNorthCore::forward_event(tw_bf *bf, nemo_message *m, tw_lp *lp) {
         }else{
             tw_warning(TW_LOC, "Last leak time was $d, current time is %d. \n", this->last_leak_time, tw_now(lp));
         }
+        //ringing at 0 check
+        this->ringing();
+
         //bool did_fire = this->fire(lp, bf);
         this->fire_reset(lp);
         // Send those fire events:
         for(int i = 0; i < NEURONS_PER_TN_CORE; i ++){
             if(this->fire_status[i]){
                 evt_stat |= BF_Event_Status :: Spike_Sent;
+                // output neurons do not actually send spikes - we will collect them for output layers //
+                if( is_output_neuron(i)){
+                    /** @todo log output spikes to main output file. */
+                }else {
 
-                for(int j = 0; j < MAX_OUTPUT_PER_TN_NEURON; j ++) {
-                    tw_lpid dest_gid = get_gid_from_core_local(destination_cores[i][j],destination_axons[i][j]);
-
-                    tw_stime dest_time = this->delays[i] + JITTER(lp->rng,random_call_count);
-                    tw_event *evt = tw_event_new(dest_gid,dest_time,lp);
-                    nemo_message *msg = (nemo_message *)tw_event_data(evt);
-                    msg->message_type=NEURON_SPIKE;
-                    msg->intended_neuro_tick = this->current_neuro_tick + 1;
-                    msg->dest_axon = destination_axons[i][j];
-                    msg->source_core = this->core_local_id;
-                    msg->nemo_event_status = as_integer(evt_stat);
-                    msg->random_call_count = lp->rng->count - random_call_count;
-                    msg->debug_time = tw_now(lp);
-                    tw_event_send(evt);
+                    for (int j = 0; j < MAX_OUTPUT_PER_TN_NEURON; j++) {
+                        tw_lpid dest_gid = get_gid_from_core_local(destination_cores[i][j], destination_axons[i][j]);
+                        tw_stime dest_time = this->delays[i] + JITTER(lp->rng, random_call_count);
+                        tw_event *evt = tw_event_new(dest_gid, dest_time, lp);
+                        nemo_message *msg = (nemo_message *) tw_event_data(evt);
+                        msg->message_type = NEURON_SPIKE;
+                        msg->intended_neuro_tick = this->current_neuro_tick + 1;
+                        msg->dest_axon = destination_axons[i][j];
+                        msg->source_core = this->core_local_id;
+                        msg->nemo_event_status = as_integer(evt_stat);
+                        msg->random_call_count = lp->rng->count - random_call_count;
+                        msg->debug_time = tw_now(lp);
+                        tw_event_send(evt);
+                    }
                 }
             }
         }
@@ -157,16 +173,37 @@ void TrueNorthCore::forward_event(tw_bf *bf, nemo_message *m, tw_lp *lp) {
 
 
 void TrueNorthCore::reverse_event(tw_bf *bf, nemo_message *m, tw_lp *lp) {
-    if (m->message_type == NEURON_SPIKE){
 
+    auto m_evt_stat = m->nemo_event_status;
+
+
+    if(in_the(m_evt_stat, BF_Event_Status::Heartbeat_Sent)){
+        //undo spike sent logic
     }
+    if(in_the(m_evt_stat, BF_Event_Status::Spike_Sent)){
+        //undo heartbeat sent logic
+    }
+    if(in_the(m_evt_stat, BF_Event_Status::Heartbeat_Rec)){
+        //undo heartbeat recvd logic.
+    }
+    if(in_the(m_evt_stat, BF_Event_Status::Spike_Rec)){
+        // undo spike recvd logic.
+    }
+
+
+
+
 
 }
 
 void TrueNorthCore::core_commit(tw_bf *bf, nemo_message *m, tw_lp *lp) {
-    for(int i = 0; i < NEURONS_PER_TN_CORE; i ++) {
-        if (this->fire_status[i])
-            this->fire_status[i] = false;
+    if(m->message_type == HEARTBEAT) {
+
+        #pragma omp parallel for
+        for (int i = 0; i < NEURONS_PER_TN_CORE; i++) {
+            if (this->fire_status[i])
+                this->fire_status[i] = false;
+        }
     }
 }
 
@@ -184,14 +221,49 @@ bool TrueNorthCore::is_output_neuron(int neuron_id) {
 }
 
 bool TrueNorthCore::is_self_firing_neuron(int neuron_id) {
-    return false;
+    return lambdas[neuron_id] > 0 && sigma_ls[neuron_id] > 0;
 }
+void TrueNorthCore::compute_weight(nemo_id_type neuron_id, int *synaptic_connectivity, int *G_i, int*sigma, int *b, int *S){
+    //G_i is axon types
 
+    for(int ax_id = 0; ax_id < NEURONS_PER_TN_CORE; ax_id ++){
+        auto weight_lookup = G_i[ax_id];
+        auto syn_con = synaptic_connectivity[ax_id];
+        auto n_wt = syn_con * (sigma[weight_lookup] * S[weight_lookup]);
+        auto stoc_mode = b[weight_lookup];
+        this->weights[neuron_id][ax_id] = n_wt * syn_con;
+        this->stochastic_weight_mode[neuron_id][ax_id] = stoc_mode;
+    }
+}
 void
 TrueNorthCore::create_tn_neuron(nemo_id_type neuron_id, bool *synaptic_connectivity, short *G_i, short *sigma, short *S,
                                 bool *b, bool epsilon, short sigma_l, short lambda, bool c, int alpha, int beta,
                                 short TM, short VR, short sigmaVR, short gamma, bool kappa, int signal_delay,
-                                nemo_id_type dest_core, nemo_id_type dest_axon) {
+                                const nemo_id_type dest_core[], const nemo_id_type dest_axon[]) {
+
+    //initialize weights
+    compute_weight(neuron_id, (int *)synaptic_connectivity,(int *) G_i, (int *) sigma, (int *)b, (int *) S);
+    epsilons[neuron_id] = epsilon;
+    sigma_ls[neuron_id] = sigma_l;
+    lambdas[neuron_id] = lambda;
+    c_vals[neuron_id] = c;
+    positive_threshold[neuron_id] = alpha;
+    negative_threshold[neuron_id] = beta;
+    sigma_VRs[neuron_id] = sigmaVR;
+    reset_voltages[neuron_id] = VR;
+    reset_modes[neuron_id] = gamma;
+    kappa_vals[neuron_id] = kappa;
+    delays[neuron_id] = signal_delay;
+
+    for(int i = 0; i < MAX_OUTPUT_PER_TN_NEURON; i ++){
+        destination_cores[neuron_id][i] = dest_core[i];
+        destination_axons[neuron_id][i] = dest_axon[i];
+    }
+    //threshold bits
+    auto Vrst = gen_encoded_random(VR);
+    auto Mj = gen_encoded_random(TM);
+    this->random_range_leak[neuron_id] = Mj;
+    this->random_range_rst[neuron_id] = Vrst;
 
 }
 
@@ -207,7 +279,8 @@ void TrueNorthCore::fire_reset(tw_lp *lp){
 #pragma omp parallel for
     for(int neuron_id = 0; neuron_id < NEURONS_PER_TN_CORE; neuron_id ++){
         // Combines fire and reset functions, since they are interlinked in the TN model
-        auto nj = gen_encoded_random(drawn_random_numbers[neuron_id], threshold_PRN_mask[neuron_id]);
+        auto nj = (nemo_thresh_type) tw_rand_integer(lp->rng, 0, 255);
+
         fire_status[neuron_id] = membrane_potentials[neuron_id] >= positive_threshold[neuron_id] + nj;
         // damn if statements!
         if(fire_status[neuron_id]){
@@ -217,15 +290,18 @@ void TrueNorthCore::fire_reset(tw_lp *lp){
                         (dt(reset_modes[neuron_id] - 2) * (membrane_potentials[neuron_id])) //δ(γj −2)Vj(t)
                     );
         }else{ //j(t) < −[βjκj + (βj + ηj)(1 − κj)]
-            auto neg_th = membrane_potentials[neuron_id] <  ( 0 -  (negative_threshold[neuron_id] * kappa_vals[neuron_id] +
+            /** @todo: check this to see if the reverse reset value is being computed properly */
+            int neg_th = membrane_potentials[neuron_id] <  (long) ( 0 -  (negative_threshold[neuron_id] * kappa_vals[neuron_id] +
                                                       (negative_threshold[neuron_id] + nj) *(1-kappa_vals[neuron_id]))
                                                       );
-            auto rrv = (((-1*negative_threshold[neuron_id])*kappa_vals[neuron_id]) +
+
+            int rrv = (((-1*negative_threshold[neuron_id])*kappa_vals[neuron_id]) +
                         (((-1*(dt(reset_modes[neuron_id])))*reset_voltages[neuron_id]) +
                          ((dt((reset_modes[neuron_id] - 1)))*
-                          (membrane_potentials[neuron_id]+ (negative_threshold[neuron_id] + drawn_random_numbers[neuron_id]))) +
+                          (membrane_potentials[neuron_id]+ (negative_threshold[neuron_id] + (unsigned int) tw_rand_integer(lp->rng, 0, random_range_rst[neuron_id])))) +
                          ((dt((reset_modes[neuron_id] - 2)))*membrane_potentials[neuron_id]))*
                         (1 - kappa_vals[neuron_id]));
+
             membrane_potentials[neuron_id] = ( (neg_th * rrv) + (1 - neg_th) * membrane_potentials[neuron_id]);
 
         }
@@ -233,9 +309,6 @@ void TrueNorthCore::fire_reset(tw_lp *lp){
     }
 }
 
-void TrueNorthCore::ringing(nemo_id_type neuron_id) {
-
-}
 
 void TrueNorthCore::integrate(tw_lp *lp, nemo_id_type input_axon) {
     // This function is a candidate for target offloading.
@@ -247,7 +320,16 @@ void TrueNorthCore::integrate(tw_lp *lp, nemo_id_type input_axon) {
 //    for(int neuron_id = 0; neuron_id < NEURONS_PER_TN_CORE; neuron_id ++){
 //        drawn_random_numbers[neuron_id] = tw_rand_integer(lp->rng, 0, 32);
 //    }
-    generate_prns(drawn_random_numbers,lp);
+
+//Generate random numbers outside of for loop since targeting may happen.
+// @todo: Move this to the forward event handler, and call it once per heartbeat.
+    nemo_random_type drawn_random_numbers[NEURONS_PER_TN_CORE];
+#pragma omp parallel for
+    for(int nid = 0; nid < NEURONS_PER_TN_CORE; nid ++){
+        drawn_random_numbers[nid] = tw_rand_integer(lp->rng, 0, 255);
+    }
+
+
 #pragma omp parallel for
     for(int neuron_id = 0; neuron_id < NEURONS_PER_TN_CORE; neuron_id ++){
         nemo_weight_type prn = drawn_random_numbers[neuron_id];
@@ -270,23 +352,33 @@ void TrueNorthCore::integrate(tw_lp *lp, nemo_id_type input_axon) {
 
 void TrueNorthCore::leak(tw_lp *lp, tw_bf *bf) {
 
-
+#pragma omp parallel for
     for(int neuron_id = 0; neuron_id < NEURONS_PER_TN_CORE; neuron_id ++) {
-        nemo_weight_type pj = drawn_random_numbers[neuron_id]; //tw_rand_integer(lp->rng,0,32);
-        nemo_weight_type epsilon_j = epsilons[neuron_id];
-        nemo_weight_type V_j = membrane_potentials[neuron_id];
-        short lambda = lambdas[neuron_id];
-        bool c_jl = c_vals[neuron_id];
+        int num_missed_leaks = current_neuro_tick - last_leak_time;
+        for(int i = 0; i < num_missed_leaks; i ++) {
+            /** @todo: Change the calls to tw_rand_integer to a target friendly function or wrap it into the GPU */
+            nemo_weight_type pj = tw_rand_integer(lp->rng, 0, random_range_leak[neuron_id]);
+            nemo_weight_type epsilon_j = epsilons[neuron_id];
+            nemo_weight_type V_j = membrane_potentials[neuron_id];
+            short lambda = lambdas[neuron_id];
+            short c_jl = c_vals[neuron_id];
 
 
-        nemo_weight_type omega = (sigma_ls[neuron_id] * (1 - epsilon_j) ) +(epsilon_j * sgn(V_j));
+            nemo_weight_type omega = (sigma_ls[neuron_id] * (1 - epsilon_j)) + (epsilon_j * sgn(V_j));
 
 
-        nemo_weight_type result = V_j + omega * (
-                (1 - c_jl) * lambda +
-                c_jl * bincomp(lambda, pj) * sgn(lambda)
-                );
-        membrane_potentials[neuron_id] += result;
+            nemo_weight_type result = V_j + omega * (
+                    (1 - c_jl) * lambda +
+                    c_jl * bincomp(lambda, pj) * sgn(lambda)
+            );
+            // Ringing check:
+            if (epsilon_j == 1 && (sgn(result) != sgn(membrane_potentials[neuron_id]))) {
+                membrane_potentials[neuron_id] = 0;
+            } else {
+                membrane_potentials[neuron_id] += result;
+            }
+        }
+
     }
 
 }
@@ -300,6 +392,7 @@ void TrueNorthCore::send_heartbeat(tw_lp *lp) {
     msg->nemo_event_status = as_integer(this->evt_stat);
     msg->source_core = this->core_local_id;
     msg->dest_axon = -1;
+    msg->debug_time = tw_now(lp);
     tw_event_send(heartbeat_event);
 }
 
@@ -307,7 +400,13 @@ void TrueNorthCore::send_heartbeat(tw_lp *lp, tw_bf *bf) {
     send_heartbeat(lp);
 }
 
-unsigned int TrueNorthCore::gen_encoded_random(unsigned int pj, unsigned int p_mask) {
-    return pj & p_mask;
+unsigned int TrueNorthCore::gen_encoded_random(unsigned int p_mask) {
+    return std::uint32_t(1) << p_mask;
+
 }
+
+void TrueNorthCore::ringing() {
+
+}
+
 

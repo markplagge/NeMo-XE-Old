@@ -2,9 +2,12 @@
 #include "../external/ROSS/core/ross.h"
 #include "../src/neuro/core.h"
 #include "../src/mapping.h"
+#include "TrueNorthCoreLogger.h"
 
 #include <iostream>
-
+#include <fstream>
+static std::vector<nemo_message*> message_trace_elements;
+static std::vector<std::string> message_trace_string;
 struct DummyLP {
 
 
@@ -31,6 +34,31 @@ struct DummyLP {
     }
     static void dummy_final(DummyLP *s, tw_lp *lp){
         s->final(lp);
+    }
+
+    static void core_ev_trace(void *msg, tw_lp *lp, char *buffer, int *collect_flag){
+        nemo_message *newm = new nemo_message;
+        auto m = (nemo_message *) msg;
+
+        newm->intended_neuro_tick =  m->intended_neuro_tick;
+        newm->debug_time = m->debug_time;
+        newm->random_call_count = m->random_call_count;
+        newm->message_type = m->message_type;
+        newm->nemo_event_status = m->nemo_event_status;
+        newm->source_core = m->source_core;
+        newm->dest_axon = m->dest_axon;
+        message_trace_elements.push_back(newm);
+        auto sti= m->to_string();
+        int x = 0;
+        for(auto c : sti){
+            buffer[x] = c;
+            x ++;
+        }
+        message_trace_string.push_back(sti);
+
+
+
+
     }
 
 
@@ -75,6 +103,7 @@ struct DummyLP {
 
     }
     tw_lpid gid;
+
     std::vector<nemo_message *> *messages;
     std::vector<nemo_message> *output_messages;
 
@@ -165,7 +194,18 @@ protected:
     int ( *callback)(tw_pe *pe);
 
 };
+st_model_types test_trace[] =  {
+        {(ev_trace_f) DummyLP::core_ev_trace,
+                sizeof(nemo_message),
+                NULL,
+                NULL,
+                NULL,
+                NULL,
+                NULL},
+        {0},
 
+
+};
 class CoreTest : public ::testing::Test {
 protected:
     void SetUp() override{
@@ -214,11 +254,19 @@ protected:
 
 
     void set_init_ross(int nlp){
+
+
+
         g_tw_nlp = nlp;
         g_tw_synchronization_protocol = tw_synch_e :: CONSERVATIVE;
         int *argc = (int *)calloc(sizeof(int),1);
-        char **argv = (char **) calloc(sizeof(char*), 1);
+        char **argv = (char **) calloc(sizeof(char*), 3);
+        argc[0] = 2;
         argv[0] = (char * ) calloc(sizeof(char), 1);
+        argv[1] = (char * ) calloc(sizeof(char), 64);
+        argv[2] = "\0";
+        sprintf(argv[1],"--event-trace=1");
+
         g_tw_events_per_pe = 256 * 256;
 
         tw_init(argc,&argv);
@@ -230,7 +278,7 @@ protected:
         for(i = 0; i < g_tw_nlp - 1; i++)
         {
             tw_lp_settype(i, &mylps[0]);
-
+            st_model_settype(i, &test_trace[0]);
         }
         tw_lp_settype(i, &mylps[1]);
     }
@@ -278,7 +326,11 @@ TEST_F(CoreTest, AllSpikeTest){
 void test_leak_pe_init_one(tw_pe *){
     std::cout<<"Post init PE \n";
     auto *core_lp = (CoreLP *)tw_getlp(0)->cur_state;
-    auto tn_core = (TrueNorthCore *) core_lp->getCore();
+    auto logger_core = new TrueNorthCoreLogger(0);
+    logger_core->core_init(tw_getlocal_lp(0));
+    core_lp->setCore(logger_core);
+
+    auto tn_core = (TrueNorthCoreLogger *) core_lp->getCore();
     //set up leaks based on test pattern:
     /* n0 : negative leak 1
      * n1 : negative leak 2
@@ -306,7 +358,7 @@ void test_leak_pe_init_one(tw_pe *){
     tn_core->c_vals[4] = true;
 
     for(int i = 0; i < 5; i ++)
-        tn_core->membrane_potentials[i] = 0;
+        tn_core->membrane_potential_v[i] = 0;
 
     // now queue up the messages:
     tw_lp *lp = tw_getlp(0);
@@ -315,7 +367,7 @@ void test_leak_pe_init_one(tw_pe *){
     tw_event * evt = tw_event_new(lp->gid, 0.1, lp);
     nemo_message *msg = (nemo_message*) tw_event_data(evt);
     msg->message_type = NEURON_SPIKE;
-    msg->source_core = 0;
+    msg->source_core = 128;
     msg->dest_axon = 0;
     msg->intended_neuro_tick = 1;
     tw_event_send(evt);
@@ -327,30 +379,55 @@ tw_petype test_pe = {
         NULL,
         0
 };
+
 /**
  * @test
  * Create a TN Core, and test linear leak
  */
  TEST_F(CoreTest, CoreLeakTime1){
+
     mylps[0].init   = (init_f) core_init_test;
     g_tw_ts_end = 30;
 
-    tw_pe_settype(tw_getpe(0), &test_pe);
+
     set_init_ross(2);
+    tw_pe_settype(tw_getpe(0), &test_pe);
     auto pe = tw_getpe(0);
     pe->type.post_lp_init = (pe_init_f) test_leak_pe_init_one;
     tw_run();
+
+    std::ofstream messages;
+    messages.open("core_leak_test_messages.csv");
+    messages<< "message_type_desc,source_core,dest_axon,intended_neuro_tick,nemo_event_status,"
+               "random_call_count,debug_time\n";
+    for(auto str_dsc : message_trace_string){
+        messages << str_dsc;
+    }
+    messages.close();
+    messages.open("core_delta_mpot.csv");
+    messages <<"original mpot,new_mpot,time\n";
+
     auto stat_lp = (DummyLP*) tw_getlp(1)->cur_state;
-    auto core = (TrueNorthCore*)((CoreLP*)tw_getlp(0)->cur_state)->getCore();
-    ASSERT_NE(stat_lp->messages->size() , 256);
+    auto core = (TrueNorthCoreLogger*)((CoreLP*)tw_getlp(0)->cur_state)->getCore();
+
+    messages <<core->mpot_to_string(true);
+    messages.close();
+
+    auto n1_mp = core->membrane_potential_v[0];
+    auto n2_mp = core->membrane_potential_v[1];
+    auto n3_mp = core->membrane_potential_v[3];
+    auto n4_mp = core->membrane_potential_v[4];
+    //tw_end();
+
+//    ASSERT_NE(stat_lp->messages->size() , 256);
     //we went to time 30, so:
     /* neuron 0 should be -30
      * neuron 1 should be -60
      * neuron 2 should be 0 (35 but spikes would happen so 0)
      * neuron 3 should be 0 (65 but spikes would happen so 0)
      * neuron 4 */
-    ASSERT_EQ(core->membrane_potentials[0], -30);
-    ASSERT_EQ(core->membrane_potentials[1], -60);
+    ASSERT_EQ(core->membrane_potential_v[0], -30);
+    ASSERT_EQ(core->membrane_potential_v[1], -60);
 
 
 

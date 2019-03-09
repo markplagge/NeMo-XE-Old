@@ -65,6 +65,7 @@ public:
         //determine the type of core we want through mapping
         s->create_core(lp);
     }
+    int core_creation_mode = 0;
 
     static void pre_run(CoreLP *s, tw_lp *lp) {s->core->pre_run(lp);}
 
@@ -81,6 +82,9 @@ public:
     INeuroCoreBase *getCore() const {
         return core;
     }
+
+    void setCore(INeuroCoreBase *core);
+
 private:
     INeuroCoreBase  *core;
     int active;
@@ -180,29 +184,39 @@ struct TrueNorthCore: public INeuroCoreBase {
      * when membrane potential is above zero, and the sign is
      * reversed when the membrane potential is below zero.
      */
-    bool epsilons[NEURONS_PER_TN_CORE];
+    short epsilons[NEURONS_PER_TN_CORE];
     /**
      * leak weight selection. If true, this is a stochastic leak
     function and the \a leakRateProb value is a probability, otherwise
     it is a leak rate. Is \f$c\f$ in the paper.
      */
-    bool c_vals[NEURONS_PER_TN_CORE];
+    short c_vals[NEURONS_PER_TN_CORE];
     /**
      * Kappa or negative reset mode. From the paper's ,\f$\kappa_j\f$, negative threshold setting to reset or saturate.
      */
-    bool kappa_vals[NEURONS_PER_TN_CORE];
+    short kappa_vals[NEURONS_PER_TN_CORE];
     /**
      * Chooses a stochastic or regular weight mode. \f$b_j^{G_i}\f$
      */
-    bool stochastic_weight_mode[NEURONS_PER_TN_CORE][NEURONS_PER_TN_CORE];
+    short stochastic_weight_mode[NEURONS_PER_TN_CORE][NEURONS_PER_TN_CORE];
 
     nemo_id_type destination_cores[NEURONS_PER_TN_CORE][MAX_OUTPUT_PER_TN_NEURON];
     nemo_id_type destination_axons[NEURONS_PER_TN_CORE][MAX_OUTPUT_PER_TN_NEURON];
+
     nemo_volt_type  membrane_potentials[NEURONS_PER_TN_CORE];
+
     nemo_thresh_type positive_threshold[NEURONS_PER_TN_CORE];
     nemo_thresh_type negative_threshold[NEURONS_PER_TN_CORE];
-    nemo_random_type drawn_random_numbers[NEURONS_PER_TN_CORE];
-    nemo_random_type threshold_PRN_mask[NEURONS_PER_TN_CORE];
+
+
+    /**
+     * Maximum PRN value for Leak
+     */
+    nemo_random_type random_range_leak[NEURONS_PER_TN_CORE];
+    /**
+     * Maximum PRN value for Reset
+     */
+    nemo_random_type random_range_rst[NEURONS_PER_TN_CORE];
 
 
     explicit TrueNorthCore(int coreLocalId);
@@ -222,8 +236,19 @@ struct TrueNorthCore: public INeuroCoreBase {
      */
     void pre_run(tw_lp *lp) override;
 
+    /**
+     * Primary forward event handler for the TN Neuron.
+     * @param bf
+     * @param m
+     * @param lp
+     */
     void forward_event(tw_bf *bf, nemo_message *m, tw_lp *lp) override;
-
+    /**
+     * Reverse event handler for the TN Neuron. @bug not implemented
+     * @param bf
+     * @param m
+     * @param lp
+     */
     void reverse_event(tw_bf *bf, nemo_message *m, tw_lp *lp) override;
 
     void core_commit(tw_bf *bf, nemo_message *m, tw_lp *lp) override;
@@ -237,65 +262,62 @@ struct TrueNorthCore: public INeuroCoreBase {
      * neuron, passed via neuron_id.
      * @param neuron_id The neuron to configure
      * @param synaptic_connectivity This neuron's synaptic connectivity - must be an array
-     * @param G_i
-     * @param sigma
-     * @param S
-     * @param b
-     * @param epsilon
-     * @param sigma_l
-     * @param lambda
+     * @param G_i The type of the ith axon
+     * @param sigma the sign of the ith axon weight
+     * @param S synaptic weight
+     * @param b selects between stochastic and deterministic integration
+     * @param epsilon Selects between monotonic and divergent / convergent leak
+     * @param sigma_l leak sign
+     * @param lambda The leak
      * @param c
      * @param alpha
      * @param beta
-     * @param TM
-     * @param VR
-     * @param sigmaVR
+     * @param TM The (encoded) threshold pseudo-random number mask; expands to \f$(2^{TM} - 1)\f$
+     * @param VR The (encoded) reset potential VR; expands to \f$ σVR(2^{VR} - 1)\f$
+     * @param sigmaVR The reset sign
      * @param gamma
      * @param kappa
      * @param signal_delay
      * @param dest_core
      * @param dest_axon
      */
-    void create_tn_neuron(nemo_id_type neuron_id, bool synaptic_connectivity[NEURONS_PER_TN_CORE],
-                          short G_i[NEURONS_PER_TN_CORE], short sigma[WEIGHTS_PER_TN_NEURON],
-                          short S[WEIGHTS_PER_TN_NEURON], bool b[WEIGHTS_PER_TN_NEURON], bool epsilon,
-                          short sigma_l, short lambda, bool c, int alpha, int beta, short TM, short VR, short sigmaVR,
-                          short gamma, bool kappa, int signal_delay, nemo_id_type dest_core, nemo_id_type dest_axon);
-
+    void create_tn_neuron(nemo_id_type neuron_id, bool *synaptic_connectivity, short *G_i, short *sigma, short *S,
+                          bool *b, bool epsilon, short sigma_l, short lambda, bool c, int alpha, int beta,
+                          short TM, short VR, short sigmaVR, short gamma, bool kappa, int signal_delay,
+                          const nemo_id_type dest_core[], const nemo_id_type dest_axon[]);
     /**
      * TN Neurons compute a PRN value based on a random number and a bit mask. This function recreates this behavior.
-     * @param pj
      * @param p_mask
-     * @return
+     * @return the maximum random value
      */
-    unsigned int gen_encoded_random(unsigned int pj, unsigned int p_mask);
-    /**
-     * This function generates PRN values for all TrueNorth neurons in the core.
-     * @tparam T
-     * @param holder
-     * @param lp
-     */
-    template <typename T>
-    void generate_prns(T *holder, tw_lp *lp){
-        for(int i = 0; i < NEURONS_PER_TN_CORE; i ++){
-            holder[i] = tw_rand_integer(lp->rng, 0, 255);
-        }
-    }
+    unsigned int gen_encoded_random(unsigned int p_mask);
+
     /**
      * Fire and Reset functionality. This checks to see if the neuron needs to fire,
      * and if so sets the binary table fire_status[neuron_id] to true and resets the neuron.
+     * ηj = ρjTM&Mj
+     * if (γj = 2) and Vj(t) > Mj
+     * • spike, Vj(t) = Mj
+     * else if Vj(t) > αj + ηj
+     * • spike, Vj(t) = δ( γj)Vrstj + δ (γj -1)( Vj(t) – αj) + d(γj – 2) Vj(t)
+     * else if Vj(t) < -[( βj κj + (βj + ηj)(1 - κj)]
+     * • Vj(t) = - βj κj + (1 – κj)[ δ(γj)Vrstj + δ( γj – 1)( Vj(t) – βj) + δ (γj – 2) Vj(t)]
      * @param lp
      */
     void fire_reset(tw_lp *lp);
     /**
      * Ringing check - eliminates "ringing" behavior in a neuron.
+     * Paper Ref:
+     * Vj(t) = 0 if (εj = 1) and [sgn(Vj*(t)) ≠ sgn(Vj(t))]
+     * Vj(t) = Vj*(t) otherwise
      * @param neuron_id
      */
-    void ringing(nemo_id_type neuron_id);
+    void ringing();
     /**
      * called when a spike is received, this integrates across neurons in the core.
      * Will be updated with efficient OpenMP / Vector versions as well as a GPU version.
-     *
+     * EQ:
+     * \f$ V_j(t) = V_j(t-1) + \sum_{i=0}^{255} A_i(t)w_{i,j}\sigma_j^{G_i} [(1-b_j^{G_i}) s_j^{G_i} + b_j^{G_i} F(S_j^{G_i}, P_j^{G_i})] \f$
      * @param lp
      * @param input_axon
      */
@@ -304,12 +326,16 @@ struct TrueNorthCore: public INeuroCoreBase {
     /**
      * Leak functionality. Will compute leak values for the amount of time that has
      * passed since the last time this neurosynaptic core was active.
+     * Paper ref:
+     * Ω = σjλ(1-εj) + sgn(Vj(t))σjλεj
+     * Vj*(t) = Vj(t) + Ω[(1 - cjλ)λj + cjλF(λj,ρjλ)]
      */
     void leak(tw_lp *lp, tw_bf *bf);
     void send_heartbeat(tw_lp *lp, tw_bf *bf);
     void send_heartbeat(tw_lp *lp);
 
-
+private:
+    void compute_weight(nemo_id_type neuron_id, int *synaptic_connectivity, int *G_i, int*sigma, int *b, int *S);
 
 
 

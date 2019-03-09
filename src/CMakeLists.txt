@@ -33,7 +33,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${RAPIDJSON_CXX_FLAGS}")
 ## Include the TN Model JSON Parsing Library
 
 ## Set up the main project
-set(nemo_lib_srcs include/globals.h globals.cpp neuro/core.cpp neuro/core.h neuro/neuron_generic.cpp neuro/neuron_generic.h  mapping.h mapping.cpp)
+set(nemo_lib_srcs include/globals.h globals.cpp neuro/core.cpp neuro/core.h neuro/neuron_generic.cpp neuro/neuron_generic.h  mapping.h mapping.cpp io/CoreOutput.cpp io/CoreOutput.h)
 set(nemo_app_srcs main.cpp include/globals.h globals.cpp)
 
 ## Add required libraries
