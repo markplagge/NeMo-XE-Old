@@ -6,8 +6,11 @@
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 
 include_directories(${ROSS_SOURCE_DIR} ${ROSS_BINARY_DIR})
+
 message(${EXTERNAL_INCLUDE})
-include_directories(${EXTERNAL_INCLUDE})
+
+
+include_directories(${EXTERNAL_INCLUDE} ${EXTERNAL_INCLUDE}/include)
 message(" --- ROSS AT ${ROSS_SOURCE_DIR}")
 ## NEMO COMPILE-TIME CONFIG SETTINGS ##
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
@@ -33,7 +36,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${RAPIDJSON_CXX_FLAGS}")
 ## Include the TN Model JSON Parsing Library
 
 ## Set up the main project
-set(nemo_lib_srcs include/globals.h globals.cpp neuro/core.cpp neuro/core.h neuro/neuron_generic.cpp neuro/neuron_generic.h  mapping.h mapping.cpp io/CoreOutput.cpp io/CoreOutput.h)
+set(nemo_lib_srcs include/globals.h globals.cpp neuro/core.cpp neuro/core.h neuro/neuron_generic.cpp
+        neuro/neuron_generic.h  mapping.h mapping.cpp io/CoreOutput.cpp include/CoreOutput.h ../external/include/atomicops.h
+        ../external/include/readerwriterqueue.h)
 set(nemo_app_srcs main.cpp include/globals.h globals.cpp)
 
 ## Add required libraries
