@@ -155,6 +155,13 @@ inline uint64_t get_gid_from_core_local(nemo_id_type dest_core, nemo_id_type des
 
 
 extern int NEURONS_PER_CORE;
+extern char *SPIKE_OUTPUT_FILENAME;
+extern int SPIKE_OUTPUT_MODE;
+
+//@todo: Move this to a config file that will be set up by CMAKE
+#define THREADED_WRITER 1
+
+
 
 
 unsigned long get_neurosynaptic_tick(double now);

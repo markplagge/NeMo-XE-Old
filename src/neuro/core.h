@@ -7,6 +7,7 @@
 #include <ross.h>
 #include "../include/globals.h"
 #include "neuron_generic.h"
+#include "../include/CoreOutput.h"
 #include <vector>
 
 
@@ -35,6 +36,8 @@ constexpr int MAX_OUTPUT_PER_TN_NEURON = 1;
  */
 struct INeuroCoreBase {
 
+    INeuroCoreBase();
+
     virtual void core_init(tw_lp *lp) = 0;
     virtual void pre_run(tw_lp *lp) = 0;
     virtual void forward_event(tw_bf *bf, nemo_message *m, tw_lp *lp) = 0;
@@ -42,6 +45,14 @@ struct INeuroCoreBase {
     virtual void core_commit(tw_bf *bf, nemo_message *m, tw_lp *lp) = 0;
     virtual void core_finish(tw_lp *lp) = 0;
 
+    CoreOutput *spike_output;
+    /**
+     * output_mode - sets the spike output mode of this core.
+     * Mode 0 is no output,
+     * Mode 1 is output spikes only
+     * Mode 2 is all spikes output
+     */
+    int output_mode = 2;
 
 
 };
@@ -66,6 +77,8 @@ public:
         s->create_core(lp);
     }
     int core_creation_mode = 0;
+
+
 
     static void pre_run(CoreLP *s, tw_lp *lp) {s->core->pre_run(lp);}
 
@@ -124,6 +137,8 @@ struct TrueNorthCore: public INeuroCoreBase {
      * neurosynaptic tick.
      */
     bool has_self_firing_neuron=false;
+
+
     /**
      * evt_stat holds the event status for the current event. This is used to compute
      * reverse computation. BF_Event_Stats is used instead of the tw_bf as it allows
@@ -219,7 +234,7 @@ struct TrueNorthCore: public INeuroCoreBase {
     nemo_random_type random_range_rst[NEURONS_PER_TN_CORE];
 
 
-    explicit TrueNorthCore(int coreLocalId);
+    explicit TrueNorthCore(int coreLocalId, int outputMode);
 
     bool is_output_neuron(int neuron_id);
     bool is_self_firing_neuron(int neuron_id);

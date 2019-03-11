@@ -35,7 +35,7 @@ void TrueNorthCoreLogger::forward_event(tw_bf *bf, nemo_message *m, tw_lp *lp) {
 
 }
 
-TrueNorthCoreLogger::TrueNorthCoreLogger(int coreLocalId) : TrueNorthCore(coreLocalId) {
+TrueNorthCoreLogger::TrueNorthCoreLogger(int coreLocalId) : TrueNorthCore(coreLocalId, 0) {
     this->last_active_time = 0;
     this->last_leak_time = 0;
     for(int i = 0; i <NEURONS_PER_TN_CORE; i ++){

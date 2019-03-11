@@ -91,7 +91,7 @@ void CoreOutputMPI::save_spike(SpikeData spike) {
 CoreOutputThread::CoreOutputThread(const std::string &outputFilename) : CoreOutput(outputFilename) {
     producer_running.store(true);
     writer_thread = std::thread(&CoreOutputThread::writer, this);
-    spike_queue = BlockingReaderWriterQueue<SpikeData>(512);
+    spike_queue = BlockingConcurrentQueue<SpikeData>(512);
 }
 
 void CoreOutputThread::save_spike(SpikeData spike) {

@@ -10,6 +10,9 @@
 #include <fstream>
 #include <cstdio>
 #include "globals.h"
+
+
+
 #include "../../external/include/atomicops.h"
 #include "../../external/include/readerwriterqueue.h"
 #include <mpi.h>
@@ -68,7 +71,7 @@ public:
  * Threaded (producer/consumer) version of the spike file output class
  */
 class CoreOutputThread:public CoreOutput {
-    BlockingReaderWriterQueue<SpikeData> spike_queue;
+    BlockingConcurrentQueue<SpikeData> spike_queue;
     std::atomic_bool producer_running;
     std::thread writer_thread;
     void writer();

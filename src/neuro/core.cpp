@@ -28,7 +28,7 @@ void CoreLP::create_core(tw_lp *lp){
     int coreLocalId = lp->id;
 
 
-    auto ccore = new TrueNorthCore(coreLocalId);
+    auto ccore = new TrueNorthCore(coreLocalId, 0);
 
     ccore->core_init(lp);
     this->core = ccore;
@@ -41,7 +41,7 @@ void CoreLP::setCore(INeuroCoreBase *core) {
 }
 
 
-TrueNorthCore::TrueNorthCore(int coreLocalId) : core_local_id(coreLocalId) {
+TrueNorthCore::TrueNorthCore(int coreLocalId, int outputMode) : core_local_id(coreLocalId) {
     // load up TrueNorth neuron info.
     //for each neuron in the core:
     //load the TN parameters for that neuron
@@ -49,6 +49,13 @@ TrueNorthCore::TrueNorthCore(int coreLocalId) : core_local_id(coreLocalId) {
     // set other neruon params
     this->last_active_time = 0;
     this->last_leak_time = 0;
+    this->output_mode = outputMode;
+#ifdef THREADED_WRITER
+    this->spike_output = new CoreOutputThread(std::string(SPIKE_OUTPUT_FILENAME));
+#else
+    this->spike_output = new CoreOutput(std::string(SPIKE_OUTPUT_FILENAME));
+#endif
+
 }
 // Seperate function for init.
 void TrueNorthCore::core_init(tw_lp *lp) {
@@ -197,12 +204,28 @@ void TrueNorthCore::reverse_event(tw_bf *bf, nemo_message *m, tw_lp *lp) {
 }
 
 void TrueNorthCore::core_commit(tw_bf *bf, nemo_message *m, tw_lp *lp) {
-    if(m->message_type == HEARTBEAT) {
+    if (m->message_type == HEARTBEAT) {
+#pragma omp parallel for
 
-        #pragma omp parallel for
         for (int i = 0; i < NEURONS_PER_TN_CORE; i++) {
-            if (this->fire_status[i])
-                this->fire_status[i] = false;
+            if (this->fire_status[i]) {
+                if ((this->output_mode == 1 && is_output_neuron(i)) || this->output_mode == 2) {
+                    for (int dd = 0; dd < MAX_OUTPUT_PER_TN_NEURON; dd++) {
+                        SpikeData d;
+                        d.source_core = this->core_local_id;
+                        d.source_neuron = i;
+                        d.dest_neuro_tick = this->current_neuro_tick + (1 + delays[i]);
+
+                        d.dest_axon = this->destination_axons[i][dd];
+                        d.dest_core = this->destination_cores[i][dd];
+
+                        d.tw_source_time = tw_now(lp);
+                        d.source_neuro_tick = this->current_neuro_tick;
+                        this->spike_output->save_spike(d);
+                    }
+                }
+            }
+            this->fire_status[i] = false;
         }
     }
 }
@@ -354,7 +377,7 @@ void TrueNorthCore::leak(tw_lp *lp, tw_bf *bf) {
 
 #pragma omp parallel for
     for(int neuron_id = 0; neuron_id < NEURONS_PER_TN_CORE; neuron_id ++) {
-        int num_missed_leaks = current_neuro_tick - last_leak_time;
+        int num_missed_leaks = current_neuro_tick - (int)last_leak_time;
         for(int i = 0; i < num_missed_leaks; i ++) {
             /** @todo: Change the calls to tw_rand_integer to a target friendly function or wrap it into the GPU */
             nemo_weight_type pj = tw_rand_integer(lp->rng, 0, random_range_leak[neuron_id]);
@@ -410,3 +433,6 @@ void TrueNorthCore::ringing() {
 }
 
 
+INeuroCoreBase::INeuroCoreBase()  {
+    
+}
