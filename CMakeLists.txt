@@ -115,12 +115,23 @@ string(REPLACE ";" " " doxygen_src_files ${doxygen_src_files})
 message(${doxygen_src_files})
 # first we can indicate the documentation build as an option and set it to ON by default
 option(BUILD_DOC "Build documentation" ON)
+option(PUSH_DOC "Push Documentation to GH Pages" OFF)
 if(BUILD_DOC)
 
     set(USE_MATHJAX "YES" CACHE  STRING "Use MathJax in documentation")
     set(MATHJAX_FORMAT "NativeMML" CACHE STRING "MathJax format")
+    set(GENERATE_TREEVIEW "YES")
+
+    set(DOC_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/docs")
+
         set(SORT_GROUP_NAMES "YES")
-    set(CLANG_ASSISTED_PARSNG 1)
+    if(NE_OMP_COMPILER MATCHES clang)
+        message("Documentation using clang assisted parsing")
+        set(CLANG_ASSISTED_PARSNG 1)
+    else()
+        set(CLANG_ASSISTED_PARSING 0)
+    endif()
+
     # check if Doxygen is installed
     find_package(Doxygen)
     if (DOXYGEN_FOUND)
@@ -129,17 +140,26 @@ if(BUILD_DOC)
         set(DOXYGEN_OUT ${CMAKE_CURRENT_BINARY_DIR}/docs/Doxyfile)
 
         # request to configure the file
-        configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
-        message("Doxygen build started")
 
+        message("Doxygen build started")
+        if(PUSH_DOC)
+            set(DOC_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/docs")
+            set(GENERATE_LATEX "NO")
+        else()
+            set(GENERATE_LATEX "YES")
+        endif()
+
+        configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
         # note the option ALL which allows to build the docs together with the application
-        add_custom_target( doc_doxygen ALL
+
+        add_custom_target( nemo2-documentation ALL
                 COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
                 WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
                 COMMENT "Generating documentation with Doxygen"
                 VERBATIM )
+
     else (DOXYGEN_FOUND)
-        message("Doxygen need to be installed to generate the doxygen documentation")
+        message("Doxygen needs to be installed to generate the doxygen documentation")
     endif (DOXYGEN_FOUND)
 
 endif()
