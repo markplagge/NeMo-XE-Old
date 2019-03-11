@@ -4,6 +4,7 @@
 
 #include "TrueNorthCoreLogger.h"
 
+
 //core event trace
 void core_ev_trace(void *msg, tw_lp *lp, char *buffer, int *collect_flag){
     //event tracing here - if used.

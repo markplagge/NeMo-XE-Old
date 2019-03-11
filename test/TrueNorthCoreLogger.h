@@ -10,6 +10,8 @@
 #include "../src/include/globals.h"
 #include "../src/neuro/core.h"
 
+#include "../src/neuro/TrueNorthCore.h"
+
 
 //st_model_types test_trace[] =  {
 //    {(ev_trace_f) core_ev_trace,

@@ -4,6 +4,7 @@
 // Created by Mark Plagge on 2019-03-09.
 //
 
+#include <ross.h>
 #include "../include/CoreOutput.h"
 
 std::string const SpikeData::to_csv() const{
@@ -18,11 +19,12 @@ std::string const SpikeData::to_csv() const{
 SpikeData SpikeData::from_csv(std::string data) {
     SpikeData s;
     std::istringstream row;
-    sscanf(data.c_str(),"%lli,%lli,%lli,%lli,%i,%i,%lf",
+    sscanf(data.c_str(),"%li,%li,%li,%li,%i,%i,%lf",
             &s.source_core,&s.source_neuron,&s.dest_core,&s.dest_axon,
             &s.source_neuro_tick,&s.dest_neuro_tick,&s.tw_source_time);
     return s;
 }
+
 
 /**
  *
@@ -91,12 +93,14 @@ void CoreOutputMPI::save_spike(SpikeData spike) {
 CoreOutputThread::CoreOutputThread(const std::string &outputFilename) : CoreOutput(outputFilename) {
     producer_running.store(true);
     writer_thread = std::thread(&CoreOutputThread::writer, this);
-    spike_queue = BlockingConcurrentQueue<SpikeData>(512);
+    spike_queue = BlockingReaderWriterQueue<SpikeData>(1024);
 }
 
 void CoreOutputThread::save_spike(SpikeData spike) {
     //try_enq
-    while(!spike_queue.enqueue(spike));
+    if(! spike_queue.enqueue(spike)){
+        tw_error(TW_LOC, "Could not enqueue output spike\n");
+    }
 }
 
 CoreOutputThread::~CoreOutputThread() {

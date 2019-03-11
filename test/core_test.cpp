@@ -3,6 +3,7 @@
 #include "../src/neuro/core.h"
 #include "../src/mapping.h"
 #include "TrueNorthCoreLogger.h"
+#include "../src/neuro/TrueNorthCore.h"
 
 #include <iostream>
 #include <fstream>
