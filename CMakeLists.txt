@@ -115,7 +115,7 @@ string(REPLACE ";" " " doxygen_src_files ${doxygen_src_files})
 message(${doxygen_src_files})
 # first we can indicate the documentation build as an option and set it to ON by default
 option(BUILD_DOC "Build documentation" ON)
-option(PUSH_DOC "Push Documentation to GH Pages" ON)
+option(PUSH_DOC "Push Documentation to GH Pages" OFF)
 if(BUILD_DOC)
 
     set(USE_MATHJAX "YES" CACHE  STRING "Use MathJax in documentation")
