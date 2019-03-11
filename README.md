@@ -33,4 +33,5 @@ openmp offload BGRS:
   Possibly the same for mpicc
   
   XLC++ expects CUDA 9.2 (XLC 16.0.1)
-  
+
+[![Waffle.io - Columns and their card count](https://badge.waffle.io/d8e07f08b2592fb5c5a8bc4d85ec47e196bb8d69cf14e1ad5068e0ba9fbdf8fe.svg?columns=all)](https://waffle.io/markplagge/NeMoXe)
