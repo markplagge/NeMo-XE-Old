@@ -1,5 +1,5 @@
 
-# *NeMo*: A Generic Neuromorphic Hardware Simulation Model built on top of ROSS
+# *NeMoXe*: A Generic Neuromorphic Hardware Simulation Model built on top of ROSS
 Author: Mark Plagge, Rensselear Polytechnic Institute
 Copyright: 2019 - MIT LICENCE
 Version 2.0
@@ -13,7 +13,7 @@ Version 2.0
 Benchmarks and results of the first edition of *NeMo* is available at the [ACM Digital Library](http://doi.acm.org/10.1145/2901378.2901392). 
 
 
-[Doxygen documentation is available as well.](./html/index.html)
+[Doxygen documentation is available as well.](http://markplagge.github.io/NeMoXe/html/index.html)
 
 Install instructions are coming soon, and will be placed on the wiki.  
 
