@@ -17,7 +17,6 @@ Version 0.1.0 supports generating probabilistic networks for benchmarking purpos
 
 [Wiki](https://github.com/markplagge/NeMo/wiki)
 
-[![Stories in Ready](https://badge.waffle.io/markplagge/NeMo.svg?label=ready&title=Ready)](http://waffle.io/markplagge/NeMo)
 
 
 Some notes:
