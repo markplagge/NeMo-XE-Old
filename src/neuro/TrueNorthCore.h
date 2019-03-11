@@ -182,6 +182,7 @@ struct TrueNorthCore: public INeuroCoreBase {
 
     void core_finish(tw_lp *lp) override;
 
+
     //construction of TN
 
     /**

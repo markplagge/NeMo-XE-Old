@@ -37,6 +37,7 @@ struct INeuroCoreBase {
     virtual void core_commit(tw_bf *bf, nemo_message *m, tw_lp *lp) = 0;
     virtual void core_finish(tw_lp *lp) = 0;
 
+
     CoreOutput *spike_output;
     /**
      * output_mode - sets the spike output mode of this core.

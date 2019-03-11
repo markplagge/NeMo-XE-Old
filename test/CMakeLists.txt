@@ -8,6 +8,7 @@ include_directories(./googletest/googletest/include)
 include_directories(../external/ROSS)
 include_directories(${ROSS_SOURCE_DIR} ${ROSS_BINARY_DIR})
 include_directories(${CMAKE_BINARY_DIR}/external/ROSS/core)
+include_directories(../external/ROSS/core)
 
 set(SOURCE_FILES core_test.cpp TrueNorthCoreLogger.h TrueNorthCoreLogger.cpp writer_test.cpp)
 

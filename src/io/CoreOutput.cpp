@@ -118,6 +118,8 @@ void CoreOutputThread::writer() {
         while( spike_queue.try_dequeue(d)) {
             auto test_str = d.to_csv();
             posix_file << d.to_csv() << "\n";
+            posix_file.flush();
+
         }
 
     }

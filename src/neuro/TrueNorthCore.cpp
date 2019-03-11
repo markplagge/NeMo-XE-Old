@@ -22,12 +22,7 @@ TrueNorthCore::TrueNorthCore(int coreLocalId, int outputMode) : core_local_id(co
     this->last_active_time = 0;
     this->last_leak_time = 0;
     this->output_mode = outputMode;
-#ifdef THREADED_WRITER
 
-    this->spike_output =  (new CoreOutputThread(std::string (SPIKE_OUTPUT_FILENAME)));
-#else
-    this->spike_output = new CoreOutput(std::string(SPIKE_OUTPUT_FILENAME));
-#endif
 
 }
 
@@ -54,6 +49,12 @@ void TrueNorthCore::pre_run(struct tw_lp *lp) {
         // need to send ourselves a heartbeat out of the gate
         send_heartbeat(lp);
     }
+#ifdef THREADED_WRITER
+
+    this->spike_output =  (new CoreOutputThread(std::string (SPIKE_OUTPUT_FILENAME)));
+#else
+    this->spike_output = new CoreOutput(std::string(SPIKE_OUTPUT_FILENAME));
+#endif
 }
 
 void TrueNorthCore::forward_event(struct tw_bf *bf, nemo_message *m, struct tw_lp *lp) {
@@ -170,8 +171,8 @@ void TrueNorthCore::reverse_event(struct tw_bf *bf, nemo_message *m, struct tw_l
 
 void TrueNorthCore::core_commit(struct tw_bf *bf, nemo_message *m, struct tw_lp *lp) {
     if (m->message_type == HEARTBEAT) {
-#pragma omp parallel for
 
+#pragma omp parallel for
         for (int i = 0; i < NEURONS_PER_TN_CORE; i++) {
             if (this->fire_status[i]) {
                 if ((this->output_mode == 1 && is_output_neuron(i)) || this->output_mode == 2) {
@@ -187,8 +188,9 @@ void TrueNorthCore::core_commit(struct tw_bf *bf, nemo_message *m, struct tw_lp 
                         this->spike_output->save_spike(d);
                     }
                 }
+                this->fire_status[i] = false;
             }
-            this->fire_status[i] = false;
+
         }
     }
 }
