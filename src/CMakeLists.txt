@@ -52,7 +52,7 @@ if(${RAPIDJSON_FOUND})
 ## Set up the main project
 set(nemo_lib_srcs include/globals.h globals.cpp neuro/core.cpp neuro/core.h neuro/TrueNorthCore.h neuro/TrueNorthCore.cpp
         neuro/neuron_generic.cpp neuro/neuron_generic.h  mapping.h mapping.cpp io/CoreOutput.cpp include/CoreOutput.h
-        ../external/include/atomicops.h ../external/include/concurrentqueue.h ../external/include/blockingconcurrentqueue.h)
+        ../external/include/atomicops.h ../external/include/concurrentqueue.h ../external/include/blockingconcurrentqueue.h neuro/LIFCore.cpp neuro/LIFCore.h)
 set(nemo_app_srcs main.cpp include/globals.h globals.cpp)
 
 ## Add required libraries

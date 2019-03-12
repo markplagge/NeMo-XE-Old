@@ -12,7 +12,6 @@
 
 
 
-
 /**
  * @defgroup nemo_cores NeMo2 Core Definitions
  * NeMo2 neurosynaptic cores, as well as the ROSS LP wrapper.
@@ -94,6 +93,8 @@ public:
 private:
     INeuroCoreBase  *core;
     int active;
+    core_types core_type;
+
 
 
 

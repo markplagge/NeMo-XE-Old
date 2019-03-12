@@ -14,6 +14,7 @@
 #include <string>
 #include <stdarg.h>  // For va_start, etc.
 #include <memory>    // For std::unique_ptr
+#include <vector>
 /** @defgroup global_macros Global Macro helper functions */
 #define JITTER(rng,c) tw_rand_unif((rng))
 /** @defgroup types Typedef Vars
@@ -33,6 +34,12 @@ typedef uint64_t stat_type;
 /**@}*/
 template<typename ... Args>
 std::string string_format( const std::string& format, Args ... args );
+
+typedef enum CoreTypes{
+    TN,
+    LIF
+}core_types;
+
 
 enum nemo_message_type{
     NEURON_SPIKE,
@@ -151,8 +158,14 @@ inline uint64_t get_gid_from_core_local(nemo_id_type dest_core, nemo_id_type des
     //currently, cores are GIDs since this is a strict linear map
     return (uint64_t) dest_core;
 }
-
-
+/**
+ * 2D Array helper template
+ * @tparam T
+ * @tparam ROW
+ * @tparam COL
+ */
+template <class T, size_t ROW, size_t COL>
+using Matrix = std::array<std::array<T, COL>, ROW>;
 
 extern int NEURONS_PER_CORE;
 extern char *SPIKE_OUTPUT_FILENAME;
@@ -160,10 +173,7 @@ extern int SPIKE_OUTPUT_MODE;
 
 //@todo: Move this to a config file that will be set up by CMAKE
 #define THREADED_WRITER 1
-
-
-
-
+static std::vector<core_types> core_type_map;
 unsigned long get_neurosynaptic_tick(double now);
 unsigned long get_next_neurosynaptic_tick(double now);
 

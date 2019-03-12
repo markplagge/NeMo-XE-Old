@@ -6,7 +6,7 @@
 #include "../include/globals.h"
 #include "../mapping.h"
 #include "TrueNorthCore.h"
-
+#include "LIFCore.h"
 void CoreLP::event_trace(nemo_message *m, tw_lp *lp, char *buffer, int *collect_flag) {
 
 }
@@ -18,16 +18,23 @@ void CoreLP::create_core(tw_lp *lp){
     // Create a neuro core based on a function return value
     // @TODO: Implement this
     ////
+    auto coreid = get_core_from_gid(lp->gid);
+    core_type = core_type_map[coreid];
+    int coreLocalId = get_core_from_gid(lp->gid);
+    if(core_type == TN) {
 
-    //Now only TN Cores
-    int coreLocalId = lp->id;
 
-
-    auto ccore = new TrueNorthCore(coreLocalId, 0);
-
-    ccore->core_init(lp);
-    this->core = ccore;
-    this->active = 1;
+        auto ccore = new TrueNorthCore(coreLocalId, 0);
+        ccore->core_init(lp);
+        this->core = ccore;
+        this->active = 1;
+    }else if(core_type == LIF){
+        auto ccore = new LIFCore(coreLocalId,0);
+        this->core = ccore;
+        this->active = 1;
+    }else{
+        std::cout << "Got an invalid core type\n";
+    }
 
 }
 
