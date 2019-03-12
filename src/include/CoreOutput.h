@@ -39,12 +39,17 @@ struct SpikeData{
     int source_neuro_tick;
     int dest_neuro_tick;
     double tw_source_time;
+
+
+    SpikeData() = default;
+
     std::string const to_csv() const;
     static SpikeData from_csv(std::string data);
     bool operator==( SpikeData & rho ) const{
 
        return this->to_csv().compare(rho.to_csv()) == 0;
     }
+
 };
 
 /**
@@ -61,6 +66,9 @@ protected:
     void open_files_posix();
     void set_filename(int rank);
 public:
+    CoreOutput(){
+        output_filename = "nemo_spike_output";
+    }
     CoreOutput(std::string outputFilename);
     virtual void save_spike(SpikeData spike);
     virtual ~CoreOutput();
@@ -71,14 +79,12 @@ public:
  * Threaded (producer/consumer) version of the spike file output class
  */
 class CoreOutputThread:public CoreOutput {
-    BlockingConcurrentQueue<SpikeData> spike_queue;
+    BlockingReaderWriterQueue<SpikeData> spike_queue;
     std::atomic_bool producer_running;
     std::thread writer_thread;
     void writer();
 
 public:
-
-
     static void setProducerRunning(const std::atomic_bool &producerRunning);
 
     CoreOutputThread(const std::string &outputFilename);

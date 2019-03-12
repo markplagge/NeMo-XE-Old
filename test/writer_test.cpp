@@ -36,7 +36,7 @@ class SpikeOutputTest : public ::testing::Test{
 
 
 
-
+//I don't care to free this
         int *argc = (int *) calloc(sizeof(int), 1);
         char **argv = (char **) calloc(sizeof(char *), 3);
         argc[0] = 1;

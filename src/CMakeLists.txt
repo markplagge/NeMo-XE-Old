@@ -25,20 +25,34 @@ if(NEMO_USE_OPENMP)
 endif()
 
 ## Configure RapidJSON
-set(RAPIDJSON_USE_SSE2 1 CACHE BOOL "Use SSE2 for RapidJSON")
-set(RAPIDJSON_USE_SSE4 1 CACHE BOOL "Use SSE4 for RapidJSON")
+#set(RAPIDJSON_USE_SSE2 OFF CACHE BOOL "Use SSE2 for RapidJSON")
+set(RAPIDJSON_USE_SSE42 ON CACHE BOOL "Use SSE4 for RapidJSON")
+
 find_package(RapidJSON)
-include_directories(${RAPIDJSON_INCLUDE_DIRS})
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${RAPIDJSON_CXX_FLAGS}")
+message("RD: ${RAPIDJSON_INCLUDE_DIRS}")
+if(${RAPIDJSON_USE_SSE42})
+    set(RAPIDJSON_CXX_FLAGS "-DRAPIDJSON_SSE42 -msse4.2")
+endif()
+message("RD FLAGS: ${RAPIDJSON_CXX_FLAGS}")
+if(${RAPIDJSON_FOUND})
+
+    include_directories("${RAPIDJSON_INCLUDE_DIR}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${RAPIDJSON_CXX_FLAGS}")
+
+        else()
+    include_directories("${EXTERNAL_INCLUDE}/rapidjson")
+
+
+    endif()
 # Special Config options for OMP offload tests
 
 
 ## Include the TN Model JSON Parsing Library
 
 ## Set up the main project
-set(nemo_lib_srcs include/globals.h globals.cpp neuro/core.cpp neuro/core.h neuro/neuron_generic.cpp
-        neuro/neuron_generic.h  mapping.h mapping.cpp io/CoreOutput.cpp include/CoreOutput.h ../external/include/atomicops.h
-        ../external/include/readerwriterqueue.h)
+set(nemo_lib_srcs include/globals.h globals.cpp neuro/core.cpp neuro/core.h neuro/TrueNorthCore.h neuro/TrueNorthCore.cpp
+        neuro/neuron_generic.cpp neuro/neuron_generic.h  mapping.h mapping.cpp io/CoreOutput.cpp include/CoreOutput.h
+        ../external/include/atomicops.h ../external/include/concurrentqueue.h ../external/include/blockingconcurrentqueue.h)
 set(nemo_app_srcs main.cpp include/globals.h globals.cpp)
 
 ## Add required libraries

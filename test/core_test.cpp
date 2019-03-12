@@ -3,6 +3,7 @@
 #include "../src/neuro/core.h"
 #include "../src/mapping.h"
 #include "TrueNorthCoreLogger.h"
+#include "../src/neuro/TrueNorthCore.h"
 
 #include <iostream>
 #include <fstream>
@@ -141,12 +142,14 @@ void core_init_test(CoreLP * core_lp, tw_lp *lp){
 void core_pre_run_test(CoreLP *s, tw_lp *lp){
     auto cclp = (CoreLP *)lp->cur_state;
     cclp->getCore()->core_init(lp);
+    cclp->getCore()->pre_run(lp);
     tw_event * evt = tw_event_new(lp->gid, 0.1, lp);
     nemo_message *msg = (nemo_message*) tw_event_data(evt);
     msg->message_type = NEURON_SPIKE;
     msg->source_core = 0;
     msg->dest_axon = 0;
     msg->intended_neuro_tick = 1;
+
     tw_event_send(evt);
 
 }
@@ -329,7 +332,7 @@ protected:
  * leak tests
  */
 
-void test_leak_pe_init_one(tw_pe *){
+void test_leak_pe_init_one(tw_pe * pe){
     std::cout<<"Post init PE \n";
     auto *core_lp = (CoreLP *)tw_getlp(0)->cur_state;
     auto logger_core = new TrueNorthCoreLogger(0);
@@ -377,6 +380,23 @@ void test_leak_pe_init_one(tw_pe *){
     msg->dest_axon = 0;
     msg->intended_neuro_tick = 1;
     tw_event_send(evt);
+
+}
+
+void test_output_pe_init(tw_pe * pe){
+    std::cout << "Output PE init \n";
+    test_leak_pe_init_one(pe);
+    auto core_lp = (CoreLP *) tw_getlp(0)->cur_state;
+    auto tn_core = (TrueNorthCoreLogger *) core_lp->getCore();
+    for(int i =0; i  < NEURONS_PER_TN_CORE; i ++){
+        for(int j = 0; j < MAX_OUTPUT_PER_TN_NEURON; j++){
+            tn_core->destination_axons[i][j] = -1;
+            tn_core->destination_cores[i][j] = -2;
+        }
+    }
+    tn_core->output_mode = 2; // set to save all.
+    SPIKE_OUTPUT_FILENAME = (char * ) calloc(64,sizeof(char));
+    sprintf(SPIKE_OUTPUT_FILENAME,"output_test");
 
 }
 tw_petype test_pe = {
@@ -438,6 +458,23 @@ tw_petype test_pe = {
 
 
 }
+
+TEST_F(CoreTest, CoreOutput){
+     mylps[0].init = (init_f) core_init_test;
+     g_tw_ts_end = 30;
+     set_init_ross(2);
+     tw_pe_settype(tw_getpe(0), &test_pe);
+     auto pe = tw_getpe(0);
+     pe->type.post_lp_init = (pe_init_f) test_output_pe_init;
+     tw_run();
+     std::ifstream out_file;
+     out_file.open("./output_test_0.csv");
+     std::string data((std::istreambuf_iterator<char>(out_file)),std::istreambuf_iterator<char>());
+     ASSERT_GT(32,data.length());
+
+
+
+ }
 
 TEST_F(CoreTest, CoreInit){
     set_init_ross(1);
