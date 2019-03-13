@@ -4,10 +4,13 @@
 
 #ifndef NEMO2_LIFCORE_H
 #define NEMO2_LIFCORE_H
-#include "core.h"
+
+#include "INeuroCoreBase.h"
 #include <array>
 #include <string>
 #include "../include/CoreOutput.h"
+
+
 // LIF Core settings:
 constexpr int LIF_NEURONS_PER_CORE = 256;
 constexpr int LIF_NUM_OUTPUTS = 256;
@@ -37,15 +40,6 @@ private:
     std::array<int,LIF_NEURONS_PER_CORE> leak_values;
     std::array<int,LIF_NEURONS_PER_CORE> thresholds;
     std::array<bool,LIF_NEURONS_PER_CORE> fire_status;
-
-    double last_active_time;
-    unsigned int current_big_tick;
-    unsigned int previous_big_tick;
-    int last_leak_time;
-    bool heartbeat_sent;
-    int output_mode;
-    int coreid;
-
 
 
 

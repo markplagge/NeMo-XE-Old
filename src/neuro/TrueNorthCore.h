@@ -269,6 +269,6 @@ private:
 
 };
 /** @} */
-#include "core.h"
+#include "INeuroCoreBase.h"
 
 #endif //NEMO2_TRUENORTHCORE_H

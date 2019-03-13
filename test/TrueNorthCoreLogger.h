@@ -8,7 +8,7 @@
 
 #include <core/ross.h>
 #include "../src/include/globals.h"
-#include "../src/neuro/core.h"
+#include "../src/neuro/INeuroCoreBase.h"
 
 #include "../src/neuro/TrueNorthCore.h"
 

@@ -15,8 +15,46 @@
 #include <stdarg.h>  // For va_start, etc.
 #include <memory>    // For std::unique_ptr
 #include <vector>
-/** @defgroup global_macros Global Macro helper functions */
-#define JITTER(rng,c) tw_rand_unif((rng))
+/** @defgroup global_macros Global Macro helper functions  *{ */
+/**
+ * JITTER(rng) -> macro for adding a jitter value to sent messages.
+ */
+#define JITTER_SCALE = 10000
+#define JITTER(rng) tw_rand_unif((rng) / JITTER_SCALE)
+//#define JITTER (tw_rand_unif(lp->rng) / 10000)
+
+/** @} */
+
+/** @defgroup time_helpers
+ * Helper functions and macros for ROSS timing
+ * @{
+ */
+#define LITTLE_TICK = (double) 1/1000
+#define BIG_TICK = 1
+
+
+unsigned long get_neurosynaptic_tick(double now);
+
+/** @todo: use this macro rather than calling yet another function and write more macros for timing */
+#define GET_NEUROSYNAPTIC_TICK(now) long(now)
+
+unsigned long get_next_neurosynaptic_tick(double now);
+
+/**
+ * lt_offset - This is the value of the next little tick. Use this when creating events in the
+ * tw_offset.
+ */
+#define lt_offset(rng) = JITTER(rng) + LITTLE_TICK
+/**
+ * bt_offset - This is offset for the next big tick. Can use this when creating events in the tw_offset for
+ * the next big tick event.
+ */
+#define bt_offset(rng) JITTER(rng) + BIG_TICK
+
+
+/**@} */
+
+
 /** @defgroup types Typedef Vars
  * Typedefs to ensure proper types for the neuron parameters/mapping calculations
  * @{  */
@@ -174,7 +212,6 @@ extern int SPIKE_OUTPUT_MODE;
 //@todo: Move this to a config file that will be set up by CMAKE
 #define THREADED_WRITER 1
 static std::vector<core_types> core_type_map;
-unsigned long get_neurosynaptic_tick(double now);
-unsigned long get_next_neurosynaptic_tick(double now);
+
 
 #endif //NEMO2_GLOBALS_H

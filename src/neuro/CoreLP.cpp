@@ -1,15 +1,18 @@
 //
-// Created by Mark Plagge on 2019-02-11.
+// Created by Mark Plagge on 2019-03-13.
 //
 
-#include "core.h"
-#include "../include/globals.h"
-#include "../mapping.h"
-#include "TrueNorthCore.h"
-#include "LIFCore.h"
+#include "../include/CoreLP.h"
+
 void CoreLP::event_trace(nemo_message *m, tw_lp *lp, char *buffer, int *collect_flag) {
 
 }
+/**
+ * This important function creates a neurosynaptic core within this CoreLP.
+ * If a new core model is added to NeMo, this is where the logic for determining
+ * which core is instantiated should go.
+ * @param lp
+ */
 void CoreLP::create_core(tw_lp *lp){
     // right now we are going to just create the test TN Cores
     // @TODO: Call the LP->Core mapping function
@@ -40,17 +43,4 @@ void CoreLP::create_core(tw_lp *lp){
 
 void CoreLP::setCore(INeuroCoreBase *core) {
     CoreLP::core = core;
-}
-
-
-
-
-// TrueNorth Core
-
-
-
-
-
-INeuroCoreBase::INeuroCoreBase()  {
-    
 }

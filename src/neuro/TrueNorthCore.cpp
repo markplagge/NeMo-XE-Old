@@ -2,9 +2,9 @@
 // Created by Mark Plagge on 2019-03-11.
 //
 
-#include "../mapping.h"
+#include "../include/mapping.h"
 #include "../include/globals.h"
-#include "core.h"
+#include "INeuroCoreBase.h"
 #include "TrueNorthCore.h"
 
 void setup_neuron_weights(int neuron_weights[], int core_id, int neuron_id){

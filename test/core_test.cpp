@@ -1,9 +1,10 @@
 #include <gtest/gtest.h>
 #include "../external/ROSS/core/ross.h"
-#include "../src/neuro/core.h"
-#include "../src/mapping.h"
+#include "../src/neuro/INeuroCoreBase.h"
+#include "../src/include/mapping.h"
 #include "TrueNorthCoreLogger.h"
 #include "../src/neuro/TrueNorthCore.h"
+#include "../src/include/CoreLP.h"
 
 #include <iostream>
 #include <fstream>
@@ -520,3 +521,27 @@ TEST_F(CoreTest, BF_Heartbeat_Enum){
 
 }
 
+TEST_F(CoreTest, template_funs){
+    tw_lptype fn_lps[] = {
+            {
+                (init_f)CoreLP::core_init_t,
+                    (pre_run_f) core_pre_run_test,
+                    (event_f) CoreLP::forward_event,
+                    (revent_f) CoreLP::reverse_event,
+                    (commit_f) CoreLP::core_commit,
+                    (final_f) CoreLP::core_finish,
+                    (map_f) nemo_map_linear,
+                    sizeof(INeuroCoreBase)},
+            {
+             (init_f)    DummyLP::dummy_init,
+                    (pre_run_f) DummyLP::dummy_pre_run,
+                    (event_f)   DummyLP::dummy_forward_event,
+                    (revent_f)  DummyLP::dummy_reverse_event,
+                    (commit_f)  DummyLP::dummy_commit,
+                    (final_f)   DummyLP::dummy_final,
+                    (map_f) nemo_map_linear,
+                    sizeof(DummyLP)
+            },
+            {0},
+    };
+ }
