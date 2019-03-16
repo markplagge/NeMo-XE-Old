@@ -16,17 +16,17 @@ constexpr int LIF_NEURONS_PER_CORE = 256;
 constexpr int LIF_NUM_OUTPUTS = 256;
 
 
-class LIFCore: public INeuroCoreBase {
-public:
+struct LIFCore: public INeuroCoreBase {
+
     LIFCore(int coreid, int outputMode);
 
-private:
-    void core_init(tw_lp *lp);
-    void pre_run(tw_lp *lp);
-    void forward_event(tw_bf *bf, nemo_message *m, tw_lp *lp);
-    void reverse_event(tw_bf *bf, nemo_message *m, tw_lp *lp);
-    void core_commit(tw_bf *bf, nemo_message *m, tw_lp *lp);
-    void core_finish(tw_lp *lp);
+
+    void core_init(tw_lp *lp) override ;
+    void pre_run(tw_lp *lp) override ;
+    void forward_event(tw_bf *bf, nemo_message *m, tw_lp *lp) override ;
+    void reverse_event(tw_bf *bf, nemo_message *m, tw_lp *lp) override ;
+    void core_commit(tw_bf *bf, nemo_message *m, tw_lp *lp)override ;
+    void core_finish(tw_lp *lp)override ;
 
 
     void create_lif_neuron(nemo_id_type neuron_id, std::array<int,LIF_NEURONS_PER_CORE> weights, std::array <int,LIF_NUM_OUTPUTS> destination_cores,

@@ -50,9 +50,18 @@ if(${RAPIDJSON_FOUND})
 ## Include the TN Model JSON Parsing Library
 
 ## Set up the main project
-set(nemo_lib_srcs include/globals.h globals.cpp neuro/INeuroCoreBase.cpp neuro/INeuroCoreBase.h neuro/TrueNorthCore.h neuro/TrueNorthCore.cpp
-        neuro/neuron_generic.cpp neuro/neuron_generic.h include/mapping.h mapping.cpp io/CoreOutput.cpp include/CoreOutput.h
-        ../external/include/atomicops.h ../external/include/concurrentqueue.h ../external/include/blockingconcurrentqueue.h neuro/LIFCore.cpp neuro/LIFCore.h neuro/CoreLP.cpp include/CoreLP.h)
+set(nemo_lib_srcs include/globals.h globals.cpp
+        neuro/INeuroCoreBase.h neuro/INeuroCoreBase.cpp
+        neuro/TrueNorthCore.h neuro/TrueNorthCore.cpp
+        neuro/neuron_generic.cpp neuro/neuron_generic.h
+        include/mapping.h mapping.cpp
+        io/CoreOutput.cpp
+        include/CoreOutput.h
+        ../external/include/atomicops.h
+        ../external/include/concurrentqueue.h
+        ../external/include/blockingconcurrentqueue.h
+        neuro/LIFCore.cpp neuro/LIFCore.h
+        neuro/CoreLP.cpp include/CoreLP.h)
 set(nemo_app_srcs main.cpp include/globals.h globals.cpp)
 
 ## Add required libraries

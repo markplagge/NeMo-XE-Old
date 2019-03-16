@@ -60,9 +60,18 @@ struct SpikeData{
 class CoreOutput {
 protected:
     const char *csv_header = "source_core,source_neuron,dest_core,dest_axon,source_neuro_tick,dest_neuro_tick,tw_source_time\n";
-
+    bool verbose_output = false;
     std::string output_filename;
     std::ofstream posix_file;
+public:
+    const std::ofstream &getPosixFile() const {
+        return posix_file;
+    }
+    void close_posix_file(){
+        this->posix_file.close();
+    }
+
+protected:
     void open_files_posix();
     void set_filename(int rank);
 public:
@@ -81,13 +90,15 @@ public:
 class CoreOutputThread:public CoreOutput {
     BlockingReaderWriterQueue<SpikeData> spike_queue;
     std::atomic_bool producer_running;
-    std::thread writer_thread;
+
     void writer();
 
 public:
-    static void setProducerRunning(const std::atomic_bool &producerRunning);
+    std::thread writer_thread;
+    void setProducerRunning(const std::atomic_bool &producerRunning);
 
     CoreOutputThread(const std::string &outputFilename);
+    void shutdown_thread();
 
     void save_spike(SpikeData spike) override ;
 
@@ -115,6 +126,7 @@ public:
     CoreOutputMPI(std::string &outputFilename, T initial_number_of_spikes);
 
     void save_spike(SpikeData spike) override;
+
 
     MPI_Comm file_communicator = MPI_COMM_WORLD;
 

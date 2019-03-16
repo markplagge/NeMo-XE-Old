@@ -25,8 +25,6 @@ void CoreLP::create_core(tw_lp *lp){
     core_type = core_type_map[coreid];
     int coreLocalId = get_core_from_gid(lp->gid);
     if(core_type == TN) {
-
-
         auto ccore = new TrueNorthCore(coreLocalId, 0);
         ccore->core_init(lp);
         this->core = ccore;
@@ -38,9 +36,12 @@ void CoreLP::create_core(tw_lp *lp){
     }else{
         std::cout << "Got an invalid core type\n";
     }
+    this->core->output_mode = OUTPUT_MODE ;
+    this->core->core_init(lp);
 
 }
 
 void CoreLP::setCore(INeuroCoreBase *core) {
     CoreLP::core = core;
 }
+

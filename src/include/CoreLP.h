@@ -35,10 +35,6 @@
  */
 class CoreLP {
 public:
-    template<class NSCORE>
-    static void core_init_t(NSCORE *s, tw_lp *lp) {
-        s->create_core(lp);
-    }
 
 
     static void event_trace(nemo_message *m, tw_lp *lp, char *buffer, int *collect_flag);\
@@ -63,7 +59,7 @@ public:
 
     static void core_commit(CoreLP *s, tw_bf *bf, nemo_message *m, tw_lp *lp) { s->core->core_commit(bf, m, lp); }
 
-    static void core_finish(CoreLP *s, tw_lp *lp) { s->core->core_finish(lp); }
+    static void core_finish(CoreLP *s, tw_lp *lp) {s->core->core_finish(lp);s->core->cleanup_output();};
 
     void create_core(tw_lp *lp);
 

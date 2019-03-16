@@ -3,16 +3,19 @@
 //
 
 #include "LIFCore.h"
-#define NE_MEM(el) this->el[neuron_id]
+#define NE_MEMBR(el) this->el[neuron_id]
 
 void LIFCore::core_init(tw_lp *lp) {
     for(auto fs : fire_status){
         fs = false;
     }
     last_leak_time = 0;
-    last_active_time = 0;
-    current_big_tick = 0;
-    previous_big_tick = 0;
+
+    current_neuro_tick = 0;
+    previous_neuro_tick = 0;
+    if(output_mode > 0){
+        this->spike_output = (CoreOutput *) new CoreOutputThread(SPIKE_OUTPUT_FILENAME);
+    }
 }
 
 void LIFCore::pre_run(tw_lp *lp) {
@@ -20,82 +23,75 @@ void LIFCore::pre_run(tw_lp *lp) {
 }
 
 void LIFCore::manage_neurosynaptic_tick(tw_bf *bf, nemo_message *m, tw_lp *lp) {
-    //big tick logic:
-    //We are at neurosynaptic tick X.
-    //We have been active since last tick.
-    //If we have an outstanding heartbeat:
-    // AND this is a spike AND this is destined for the next tick,
-    // this message was recevied out of order. (should not happen)
-    // If we do not have an outstanding heartbeat:
-    // AND this message is a heartbeat, error
-    // Otherwise, we need to retroactively compute the leak for the previous ticks:
-    if(heartbeat_sent && m->intended_neuro_tick > current_big_tick){
-        tw_error(TW_LOC, "Got a spike with an out of bounds tick.\n");
-    }
-    if(!heartbeat_sent && m->message_type == HEARTBEAT){
-        tw_error(TW_LOC, "Got a heartbeat when no heartbeat was expected.\n");
-    }
-    //set heartbeat values:
-    if(current_big_tick < m->intended_neuro_tick) {
-        previous_big_tick = current_big_tick;
-        bf->c0 = 1; // big tick change alert.
-        current_big_tick = m->intended_neuro_tick;
-    }else if (current_big_tick == m->intended_neuro_tick){
-            // no tick change, just integrate;
-        bf->c0 = 0;
-    }else{
-        tw_error(TW_LOC, "Invalid tick times.\n ");
-    }
+//    //big tick logic:
+//    //We are at neurosynaptic tick X.
+//    //We have been active since last tick.
+//    //If we have an outstanding heartbeat:
+//    // AND this is a spike AND this is destined for the next tick,
+//    // this message was recevied out of order. (should not happen)
+//    // If we do not have an outstanding heartbeat:
+//    // AND this message is a heartbeat, error
+//    // Otherwise, we need to retroactively compute the leak for the previous ticks:
+//    if(heartbeat_sent && m->intended_neuro_tick > current_neuro_tick){
+//        tw_error(TW_LOC, "Got a spike with an out of bounds tick.\n");
+//    }
+//    if(!heartbeat_sent && m->message_type == HEARTBEAT){
+//        tw_error(TW_LOC, "Got a heartbeat when no heartbeat was expected.\n");
+//    }
+//    //set heartbeat values:
+//    if(current_neuro_tick < m->intended_neuro_tick) {
+//        previous_neuro_tick = current_neuro_tick;
+//        bf->c0 = 1; // big tick change alert.
+//        current_neuro_tick = m->intended_neuro_tick;
+//    }else if (current_neuro_tick == m->intended_neuro_tick){
+//            // no tick change, just integrate;
+//        bf->c0 = 0;
+//    }else{
+//        tw_error(TW_LOC, "Invalid tick times.\n ");
+//    }
 }
 
 void LIFCore::forward_event(tw_bf *bf, nemo_message *m, tw_lp *lp) {
-    auto random_call_count = lp->rng->count;
-    manage_neurosynaptic_tick(bf,m,lp);
-    if (m->message_type == NEURON_SPIKE){
+    this->my_lp = lp;
+    this->cur_rng_count = lp->rng->count;
+    this->cur_message = m;
+    this->my_bf = bf;
+    this->evt_stat = BF_Event_Status::None;
+    // call base heartbeat_forward handler
+    this->forward_heartbeat_handler();
+    //heartbeats and ticks are updated by that func.
 
-        if(! heartbeat_sent){
-            bf->c1 = 1;
-            this->heartbeat_sent = true;
-            tw_event *e = tw_event_new(lp->gid,get_next_neurosynaptic_tick(tw_now(lp)),lp);
-            nemo_message *hb = (nemo_message *) tw_event_data(e);
-            hb->intended_neuro_tick = get_next_neurosynaptic_tick(tw_now(lp));
-            hb->message_type = HEARTBEAT;
-            hb->source_core = coreid;
-            hb->random_call_count = random_call_count;
-            hb->debug_time = tw_now(lp);
-            tw_event_send(e);
-        }
+    //Integration if a spike
+    if (m->message_type == NEURON_SPIKE){
+        evt_stat = BF_Event_Status :: Spike_Rec;
         // integreate //
         auto source_axon = m->dest_axon;
-
 #pragma omp parallel for simd
         for(int neuron_id =0; neuron_id< LIF_NEURONS_PER_CORE; neuron_id ++){
-            NE_MEM(membrane_pots) += NE_MEM(weights)[source_axon];
+            NE_MEMBR(membrane_pots) += NE_MEMBR(weights)[source_axon];
         }
+    }else if (m->message_type == HEARTBEAT){ // leak, reset, and fire
+        evt_stat = BF_Event_Status ::Heartbeat_Rec;
 
-    }else if (m->message_type == HEARTBEAT){
-        if(m->source_core != coreid){
-            tw_error(TW_LOC, "core %i got a heartbeat from core %i\n", coreid, m->source_core);
+        if(m->source_core != core_local_id){
+            tw_error(TW_LOC, "core %i got a heartbeat from core %i\n", core_local_id, m->source_core);
         }
-        // leak
-
-
+        if(leak_needed_count > 0){
+            evt_stat = add_evt_status(evt_stat,BF_Event_Status::Leak_Update);
+        }
 #pragma omp parallel for
-        for(int lt = current_big_tick - last_leak_time; lt > 0; lt --){
+        for(int lt = leak_needed_count; lt > 0; lt --){
 #pragma omp parallel for simd
             for(int neuron_id =0; neuron_id < LIF_NEURONS_PER_CORE; neuron_id ++){
-                NE_MEM(membrane_pots) += NE_MEM(leak_values);
+                NE_MEMBR(membrane_pots) += NE_MEMBR(leak_values);
             }
         }
-        last_leak_time = current_big_tick;
-        bf->c2 = 1;
-
-        //fire & reset
+        //fire detect and reset funct
 #pragma omp  parallel for
         for(int neuron_id = 0; neuron_id < LIF_NEURONS_PER_CORE; neuron_id ++){
-            if(NE_MEM(membrane_pots) > NE_MEM(thresholds)) {
-                NE_MEM(fire_status) = true;
-                NE_MEM(membrane_pots) = 0;
+            if(NE_MEMBR(membrane_pots) >= NE_MEMBR(thresholds)) {
+                NE_MEMBR(fire_status) = true;
+                NE_MEMBR(membrane_pots) = 0;
                 bf->c3 = 1;
             }
         }
@@ -110,34 +106,29 @@ void LIFCore::reverse_event(tw_bf *bf, nemo_message *m, tw_lp *lp) {
 }
 
 void LIFCore::core_commit(tw_bf *bf, nemo_message *m, tw_lp *lp) {
+    RNG_START(lp);
     if(m->message_type == HEARTBEAT){
         for(int neuron_id = 0; neuron_id < LIF_NEURONS_PER_CORE; neuron_id ++){
-            if(NE_MEM(fire_status)){
+            if(NE_MEMBR(fire_status)){
                 bf->c4 = 1;
                 for(int dv = 0; dv < LIF_NUM_OUTPUTS; dv ++){
-                    tw_event *e = tw_event_new(get_gid_from_core_local(NE_MEM(destination_cores)[dv],NE_MEM(destination_axons)[dv]),get_next_neurosynaptic_tick(tw_now(lp)),lp);
-                    nemo_message *m = (nemo_message *) tw_event_data(e);
-                    m->intended_neuro_tick = get_next_neurosynaptic_tick(tw_now(lp));
-                    m->dest_axon = NE_MEM(destination_axons)[dv];
-                    m->source_core = coreid;
-                    m->random_call_count = lp->rng->count;
-                    m->debug_time = tw_now(lp);
-                    m->message_type = NEURON_SPIKE;
+                    tw_event *e = tw_event_new(get_gid_from_core_local(NE_MEMBR(destination_cores)[dv],NE_MEMBR(destination_axons)[dv]),get_next_neurosynaptic_tick(tw_now(lp)),lp);
+                    auto *msg = (nemo_message *) tw_event_data(e);
+                    msg->intended_neuro_tick = current_neuro_tick;//get_next_neurosynaptic_tick(tw_now(lp));
+                    msg->dest_axon = NE_MEMBR(destination_axons)[dv];
+                    msg->source_core = core_local_id;
+                    msg->debug_time = tw_now(lp);
+                    msg->message_type = NEURON_SPIKE;
+                    RNG_END(lp);
                     tw_event_send(e);
                     //save the spike
-                    SpikeData s;
-                    s.source_core = coreid;
-                    s.dest_axon = m->dest_axon;
-                    s.source_neuro_tick = current_big_tick;
-                    s.dest_neuro_tick = m->intended_neuro_tick;
-                    s.dest_core = NE_MEM(destination_cores)[dv];
-                    s.source_neuron = neuron_id;
-                    s.tw_source_time = tw_now(lp);
-
-                    this->spike_output->save_spike(s);
+                    if(output_mode > 0){
+                        this->save_spike(msg,NE_MEMBR(destination_cores)[dv],neuron_id);
+                    }
                 }
             }
         }
+
     }
 
 }
@@ -151,17 +142,20 @@ void LIFCore::create_lif_neuron(nemo_id_type neuron_id, std::array<int, LIF_NEUR
                                 std::array<int, LIF_NEURONS_PER_CORE> destination_axons, int leak, int threshold) {
 
     for(int i =0; i < LIF_NEURONS_PER_CORE; i ++){
-        NE_MEM(weights)[i] = weights[i];
+        NE_MEMBR(weights)[i] = weights[i];
     }
     for(int i = 0; i < LIF_NUM_OUTPUTS; i ++){
-        NE_MEM(destination_cores)[i] = destination_cores[i];
-        NE_MEM(destination_axons)[i] = destination_axons[i];
+        NE_MEMBR(destination_cores)[i] = destination_cores[i];
+        NE_MEMBR(destination_axons)[i] = destination_axons[i];
     }
-    NE_MEM(leak_values) = leak;
-    NE_MEM(thresholds) = threshold;
+    NE_MEMBR(leak_values) = leak;
+    NE_MEMBR(thresholds) = threshold;
 
 
 
 }
 
-LIFCore::LIFCore(int coreID, int outputMode) : coreid(coreID), output_mode(outputMode) {}
+LIFCore::LIFCore(int coreID, int outputMode)  {
+    core_local_id = coreID;
+    output_mode = outputMode;
+}

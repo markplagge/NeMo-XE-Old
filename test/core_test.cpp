@@ -524,7 +524,7 @@ TEST_F(CoreTest, BF_Heartbeat_Enum){
 TEST_F(CoreTest, template_funs){
     tw_lptype fn_lps[] = {
             {
-                (init_f)CoreLP::core_init_t,
+                (init_f)CoreLP::core_init,
                     (pre_run_f) core_pre_run_test,
                     (event_f) CoreLP::forward_event,
                     (revent_f) CoreLP::reverse_event,

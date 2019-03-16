@@ -13,12 +13,13 @@ void setup_neuron_weights(int neuron_weights[], int core_id, int neuron_id){
     }
 }
 
-TrueNorthCore::TrueNorthCore(int coreLocalId, int outputMode) : core_local_id(coreLocalId) {
+TrueNorthCore::TrueNorthCore(int coreLocalId, int outputMode)  {
     // load up TrueNorth neuron info.
     //for each neuron in the core:
     //load the TN parameters for that neuron
     //set neuron weights
     // set other neruon params
+    this->core_local_id = coreLocalId;
     this->last_active_time = 0;
     this->last_leak_time = 0;
     this->output_mode = outputMode;
@@ -116,8 +117,9 @@ void TrueNorthCore::forward_event(struct tw_bf *bf, nemo_message *m, struct tw_l
                 }else {
 
                     for (int j = 0; j < MAX_OUTPUT_PER_TN_NEURON; j++) {
+
                         uint64_t dest_gid = get_gid_from_core_local(destination_cores[i][j], destination_axons[i][j]);
-                        double dest_time = this->delays[i] + JITTER(lp->rng, random_call_count);
+                        double dest_time = this->delays[i] + JITTER(lp->rng);
                         struct tw_event *evt = tw_event_new(dest_gid, dest_time, lp);
                         nemo_message *msg = (nemo_message *) tw_event_data(evt);
                         msg->message_type = NEURON_SPIKE;

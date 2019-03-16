@@ -19,9 +19,10 @@
 /**
  * JITTER(rng) -> macro for adding a jitter value to sent messages.
  */
-#define JITTER_SCALE = 10000
-#define JITTER(rng) tw_rand_unif((rng) / JITTER_SCALE)
-//#define JITTER (tw_rand_unif(lp->rng) / 10000)
+#define JITTER_SCALE  10000
+#define JITTER(rng) tw_rand_unif(rng) / JITTER_SCALE
+
+//#define JITTER (tw_rand_unif(lp->rng,0,JITTER_SCALE) / 10000)
 
 /** @} */
 
@@ -83,14 +84,28 @@ enum nemo_message_type{
     NEURON_SPIKE,
     HEARTBEAT
 };
+/** @defgroup bf_evt BF_EventStatus
+ * Event Status enum / bitfield group. This group contains elements that manage the
+ * enum / flags for event status created in NeMo.
+ * @{
+ */
+
+
+
+/**
+ * BF_Event_Status - A descriptive specialized replacement for tw_bf.
+ * Flags the program flow when handling events.
+ */
 enum class BF_Event_Status:uint32_t{
-    None = 0x00, // No state changes happened
-    Heartbeat_Sent = (1u << 1), // a heartbeat message was sent
+    None = 0x00, //! No state changes happened
+    Heartbeat_Sent = (1u << 1), //! a heartbeat message was sent
     Spike_Sent = (1u << 2), //a spike message was sent
-    Output_Spike_Sent = (1u << 3), // a spike message to an output layer was sent
-    Heartbeat_Rec = (1u << 4), // A heartbeat was received
-    Spike_Rec = (1u << 5),
-    NS_Tick_Update = (1u << 6),
+    Output_Spike_Sent = (1u << 3), //! a spike message to an output layer was sent
+    Heartbeat_Rec = (1u << 4), //! A heartbeat was received
+    Spike_Rec = (1u << 5), //! A spike message was received
+    NS_Tick_Update = (1u << 6), //! We updated the neurosynaptic tick value
+    Leak_Update = (1u << 7), //! We updated the membrane potentials through a leak
+    FR_Update = (1u << 8) //! We updated the membrane potentials through fire/reset computations
 
 };
 template <typename Enumeration>
@@ -100,20 +115,32 @@ auto as_integer(Enumeration const value)-> typename std::underlying_type<Enumera
 
 
 
+
 inline BF_Event_Status operator|(BF_Event_Status a, BF_Event_Status b){
     return static_cast<BF_Event_Status> (as_integer(a) | as_integer(b));
 }
 
-
-template <typename I, typename E>
-inline bool in_the(I a , E b){
-    return a & static_cast<std::underlying_type_t<E>>(b);
-}
+/**
+ * Function that determines if the BF_Event_Status contains the supplied event.
+ * @tparam I
+ * @tparam E BF_Event_Status status or an integer.
+ * @param a Base event status. Is the event b in this flag?
+ * @param b Flag option - is this value in a?
+ * @return if the value b is in a, then true.
+ */
 
 
 
 inline BF_Event_Status operator&(BF_Event_Status a, BF_Event_Status b){
     return static_cast<BF_Event_Status> (as_integer(a) & as_integer(b) );
+}
+
+template < typename E>
+inline bool in_the(unsigned int a , E b){
+    return bool (a  & as_integer(b));
+}
+inline bool in_the(BF_Event_Status a, BF_Event_Status b){
+    return as_integer(a & b);
 }
 
 inline BF_Event_Status& operator|=(BF_Event_Status &a, BF_Event_Status b){
@@ -157,6 +184,21 @@ inline BF_Event_Status add_event_condition(BF_Event_Status event_status, BF_Even
 inline BF_Event_Status add_event_condiditon(BF_Event_Status new_event){
     return new_event;
 }
+template <typename NEW_EVT>
+inline BF_Event_Status add_evt_status(BF_Event_Status event_status, NEW_EVT new_event){
+    return event_status | new_event;
+}
+template <typename ... NEW_EVT>
+inline BF_Event_Status add_evt_status(BF_Event_Status  event_status, NEW_EVT ... new_event){
+    return event_status | add_evt_status(new_event...);
+}
+
+
+
+
+
+/** @} */
+
 
 /** Gives us the BINCOMP (binary comparison) function used for stochastic weight modes.
  * Takes the absolute value of the first value, and compares it to the seocnd. */
@@ -208,10 +250,11 @@ using Matrix = std::array<std::array<T, COL>, ROW>;
 extern int NEURONS_PER_CORE;
 extern char *SPIKE_OUTPUT_FILENAME;
 extern int SPIKE_OUTPUT_MODE;
+extern int OUTPUT_MODE;
 
 //@todo: Move this to a config file that will be set up by CMAKE
 #define THREADED_WRITER 1
-static std::vector<core_types> core_type_map;
+extern std::vector<core_types> core_type_map;
 
 
 #endif //NEMO2_GLOBALS_H

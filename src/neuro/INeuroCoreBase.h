@@ -10,7 +10,8 @@
 #include "../include/CoreOutput.h"
 #include <vector>
 
-
+#define RNG_START(lp) auto rng_count = lp->rng->count
+#define RNG_END(lp)  msg->random_call_count = (lp->rng->count - rng_count)
 /**
  * @defgroup nemo_cores NeMo2 Core Definitions
  * NeMo2 neurosynaptic cores, as well as the ROSS LP wrapper.
@@ -34,33 +35,40 @@
  * crtp helper / basis class. Helps keep static polymorphism function boilerplate code managable.
  * @tparam T
  */
-template <typename T>
-struct crtp
-{
-    T& underlying() { return static_cast<T&>(*this); }
-    T const& underlying() const { return static_cast<T const&>(*this); }
-};
+//template <typename T>
+//struct crtp
+//{
+//    T& underlying() { return static_cast<T&>(*this); }
+//    T const& underlying() const { return static_cast<T const&>(*this); }
+//};
+//
+//
+//template<typename CORE_BASE>
+//struct NeuroCoreBasis : crtp<CORE_BASE>{
+//    void core_init_s(tw_lp *lp){
+//        this()->underlying()->core_init(lp);
+//    }
+//private:
+//
+//};
+//
+//
+//template <typename CORE_BASE>
+//struct NeuroIntegrateBasis : crtp<CORE_BASE>{
+//    void core_integrate(tw_bf *bf, nemo_message *m, tw_lp *lp){
+//        this->underlying()->integrate(bf, m, lp);
+//    }
+//    void reverse_core_integrate(tw_bf *bf, nemo_message *m, tw_lp *lp){
+//        this->underlying()->reverse_integrate(bf, m,lp);
+//    }
+//    void forward_event(tw_bf *bf, nemo_message *m, tw_lp *lp){
+//        this->underlying().forward_event_impl(bf,m,lp);
+//    }
+//
+//
+//};
 
 
-template<typename CORE_BASE>
-class NeuroCoreBasis : crtp<CORE_BASE>{
-    void core_init_s(tw_lp *lp){
-        this()->underlying()->core_init(lp);
-    }
-private:
-
-};
-
-
-template <typename CORE_BASE>
-class NeuroIntegrateBasis : crtp<CORE_BASE>{
-    void core_integrate(tw_bf *bf, nemo_message *m, tw_lp *lp){
-        this->underlying()->integrate(bf, m, lp);
-    }
-    void reverse_core_integrate(tw_bf *bf, nemo_message *m, tw_lp *lp){
-        this->underlying()->reverse_integrate(bf, m,lp);
-    }
-};
 /**
  * INeuroCoreBase
  * Base interface for neuromorphic cores in NeMo. Defines the expected functions
@@ -68,7 +76,7 @@ class NeuroIntegrateBasis : crtp<CORE_BASE>{
  *
  * Also implements basic heartbeat code.
  */
-struct INeuroCoreBase: public NeuroIntegrateBasis<INeuroCoreBase>{
+struct INeuroCoreBase{
 
     INeuroCoreBase();
 
@@ -86,15 +94,16 @@ struct INeuroCoreBase: public NeuroIntegrateBasis<INeuroCoreBase>{
      * - the heartbeat / neurosnaptic tick sync
      * -
      *
-     * @todo : these should *not* be virtual, rather use CRTP to prevent excessive virtual function calls?
+     *
      *
      */
-    virtual void forward_handler();
-    virtual void reverse_handler();
+    virtual void forward_heartbeat_handler();
+    virtual void reverse_heartbeat_handler();
     virtual void send_heartbeat();
-    virtual void integrate() = 0;
-    virtual void reverse_integrate();
 
+
+    void save_spike(nemo_message *m,long dest_core, long neuron_id);
+    void cleanup_output();
 
     CoreOutput *spike_output;
     /**
@@ -104,21 +113,47 @@ struct INeuroCoreBase: public NeuroIntegrateBasis<INeuroCoreBase>{
      * Mode 2 is all spikes output
      */
     int output_mode = 2;
+    /**
+ * The last time that this core had activity. This refers to any  message.
+ */
 
+    long last_active_time = 0;
+    long current_neuro_tick = 0;
+    long previous_neuro_tick = -1;
+    /**
+ * The last time this core computed the leak.
+ */
+    long last_leak_time= 0 ;
+    long leak_needed_count = 0;
 
-    double last_active_time;
-    unsigned int current_neuro_tick;
-    unsigned int previous_neuro_tick;
-    int last_leak_time;
-
+    /**
+     * A heartbeat check value.
+     */
     bool heartbeat_sent;
-    int coreid;
+    /**
+     * * the local core id. If linear mapping is enabled, then this will be equal to the GID/PE id
+ */
+
+    int core_local_id;
+    /**
+     * my_lp -> current lp state, holds the lp state given to us from the calling function.
+     */
     tw_lp *my_lp;
     tw_bf *my_bf;
+    /**
+     * Current message holder - @todo: may not need this.
+     */
     nemo_message *cur_message;
+    /**
+     * random number generator counter - used to keep the RNG counter state intact through various calls.
+     */
     unsigned long cur_rng_count;
-
-
+    /**
+ * evt_stat holds the event status for the current event. This is used to compute
+ * reverse computation. BF_Event_Stats is used instead of the tw_bf as it allows
+ * more explicit naming. The concept is the same, however.
+ */
+    BF_Event_Status evt_stat;
 
 };
 

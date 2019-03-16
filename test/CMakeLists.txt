@@ -10,7 +10,8 @@ include_directories(${ROSS_SOURCE_DIR} ${ROSS_BINARY_DIR})
 include_directories(${CMAKE_BINARY_DIR}/external/ROSS/core)
 include_directories(../external/ROSS/core)
 
-set(SOURCE_FILES core_test.cpp TrueNorthCoreLogger.h TrueNorthCoreLogger.cpp writer_test.cpp)
+set(SOURCE_FILES core_test.cpp TrueNorthCoreLogger.h TrueNorthCoreLogger.cpp writer_test.cpp
+        LIFCore_test.cpp INeuroCoreBase_test.cpp ross_testing_wrapper.cpp ross_testing_wrapper.h globals_test.cpp )
 
 add_executable(nemo_tests ${SOURCE_FILES})
 target_include_directories(nemo_tests PUBLIC "./googletest/googletest/include" PUBLIC "./googletest/googlemock/include" ${ROSS_SOURCE_DIR} ${ROSS_BINARY_DIR})
