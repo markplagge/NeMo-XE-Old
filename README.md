@@ -38,4 +38,6 @@ openmp offload BGRS:
 
 <hr>
 *Code Project & Statistics*
+
+
 [![CodeFactor](https://www.codefactor.io/repository/github/markplagge/nemoxe/badge)](https://www.codefactor.io/repository/github/markplagge/nemoxe)
