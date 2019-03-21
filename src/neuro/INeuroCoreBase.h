@@ -31,16 +31,7 @@
  * @tparam T
  */
 #define IMPL(f,c) public (f)<c>
-/**
- * crtp helper / basis class. Helps keep static polymorphism function boilerplate code managable.
- * @tparam T
- */
-//template <typename T>
-//struct crtp
-//{
-//    T& underlying() { return static_cast<T&>(*this); }
-//    T const& underlying() const { return static_cast<T const&>(*this); }
-//};
+
 //
 //
 //template<typename CORE_BASE>
@@ -103,6 +94,7 @@ struct INeuroCoreBase{
 
 
     void save_spike(nemo_message *m,long dest_core, long neuron_id);
+
     void cleanup_output();
 
     CoreOutput *spike_output;
@@ -148,12 +140,21 @@ struct INeuroCoreBase{
      * random number generator counter - used to keep the RNG counter state intact through various calls.
      */
     unsigned long cur_rng_count;
+
+    /**
+     * swtich to enable heartbeat timing debug writes.
+     */
+    bool debug_heartbeat = false;
+
+
     /**
  * evt_stat holds the event status for the current event. This is used to compute
  * reverse computation. BF_Event_Stats is used instead of the tw_bf as it allows
  * more explicit naming. The concept is the same, however.
  */
     BF_Event_Status evt_stat;
+
+
 
 };
 

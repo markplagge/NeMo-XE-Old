@@ -6,6 +6,8 @@
 
 #ifndef NEMO2_COREOUTPUT_H
 #define NEMO2_COREOUTPUT_H
+/**@file CoreOutput.h - contains output functions and data structures
+ * @defgroup output CoreOutput @{ */
 #include <iostream>
 #include <fstream>
 #include <cstdio>
@@ -25,12 +27,24 @@
 using namespace moodycamel;
 
 /**
+ * Output mode types - used to switch between a posix csv and a MPI binary.
  *
  */
 enum output_mode{
       POSIX_CSV,
      MPI_BINARY
  };
+/**
+ * Forced static template for SpikeData - ensures no vtables for functions used in SpikeData calling functions.
+ */
+ template <typename DataBase>
+ struct SpikeDataFuncs {
+
+ };
+
+/**
+ * SpikeData holds data that represents a spike - used for saving spikes to disk.
+ */
 struct SpikeData{
     nemo_id_type source_core;
     nemo_id_type dest_core;
@@ -46,9 +60,25 @@ struct SpikeData{
     std::string const to_csv() const;
     static SpikeData from_csv(std::string data);
     bool operator==( SpikeData & rho ) const{
+        return (rho.source_core == source_core)&&
+        (rho.dest_core == dest_core)&&
+        (rho.source_neuron == source_neuron)&&
+        (rho.dest_axon == dest_axon)&&
+        (rho.source_neuro_tick == source_neuro_tick)&&
+        (rho.dest_neuro_tick == dest_neuro_tick)&&
+        (rho.tw_source_time == tw_source_time);
 
        return this->to_csv().compare(rho.to_csv()) == 0;
     }
+
+};
+/**
+ * Neuron state data wrapper that contains information on the spike's current state.
+ * Used to save membrane potentials and various other stats during a simulation.
+ * Inherits Spike
+ */
+struct StateData {
+    nemo_id_type my_core;
 
 };
 

@@ -84,6 +84,8 @@ enum nemo_message_type{
     NEURON_SPIKE,
     HEARTBEAT
 };
+/** @} */
+
 /** @defgroup bf_evt BF_EventStatus
  * Event Status enum / bitfield group. This group contains elements that manage the
  * enum / flags for event status created in NeMo.
@@ -197,8 +199,19 @@ inline BF_Event_Status add_evt_status(BF_Event_Status  event_status, NEW_EVT ...
 
 
 
-/** @} */
+/** @}  @defgroup global_help Global Helpers.
+ * Global helper functions / classes which are used throughout NeMo @{ */
 
+/**
+ * crtp helper / basis class. Helps keep static polymorphism function boilerplate code managable.
+ * @tparam T
+ */
+template <typename T>
+struct crtp
+{
+    T& underlying() { return static_cast<T&>(*this); }
+    T const& underlying() const { return static_cast<T const&>(*this); }
+};
 
 /** Gives us the BINCOMP (binary comparison) function used for stochastic weight modes.
  * Takes the absolute value of the first value, and compares it to the seocnd. */
@@ -239,13 +252,18 @@ inline uint64_t get_gid_from_core_local(nemo_id_type dest_core, nemo_id_type des
     return (uint64_t) dest_core;
 }
 /**
- * 2D Array helper template
+ * 2D Array helper template. Matrix is a 2D array using STD::Array
  * @tparam T
  * @tparam ROW
  * @tparam COL
  */
 template <class T, size_t ROW, size_t COL>
 using Matrix = std::array<std::array<T, COL>, ROW>;
+
+
+
+//template <class T, size_t ROW, size_t COL>
+//using VectorMatrix = std::vector<std::vector<T>>
 
 extern int NEURONS_PER_CORE;
 extern char *SPIKE_OUTPUT_FILENAME;
