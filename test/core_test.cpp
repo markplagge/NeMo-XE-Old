@@ -10,6 +10,7 @@
 #include <fstream>
 static std::vector<nemo_message*> message_trace_elements;
 static std::vector<std::string> message_trace_string;
+//std::vector<core_types> core_type_map;
 char * SPIKE_OUTPUT_FILENAME;
 struct DummyLP {
 
@@ -216,7 +217,8 @@ protected:
     void SetUp() override{
         SPIKE_OUTPUT_FILENAME = (char*) calloc(128,sizeof(char));
         sprintf(SPIKE_OUTPUT_FILENAME, "test_case_output");
-
+        core_type_map.push_back(TN);
+        core_type_map.push_back(TN);
         test_core = new TrueNorthCore(0, 0); // core 0 tests;
 //        lp = (tw_lp *) calloc(1, sizeof(tw_lp));
 //        lp->rng = rng_init(1,2);

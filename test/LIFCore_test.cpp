@@ -20,6 +20,7 @@ int num_of_input_spikes = 3;
 void lif_pre_run(CoreLP *s, tw_lp *lp){
     auto cclp = (CoreLP * ) lp->cur_state;
     cclp->getCore()->core_init(lp);
+
     //cclp->getCore()->pre_run(lp);
     for(int i =0; i < num_of_input_spikes; i ++) {
         tw_event *evt = tw_event_new(lp->gid,JITTER(lp->rng),lp);
@@ -222,9 +223,12 @@ TEST_F(LIFCore_test, CoreOutput){
     while(std::getline(core_dump,lines)){
         input_string.push_back(lines);
     }
-    for(auto spd : core_output->spikes){
-        base_string.push_back(spd.to_csv());
+    auto logger_output = ((DummyLP * )tw_getlp(1) -> cur_state);
+
+    for(auto spd : *logger_output->messages){
+        base_string.push_back(spd->to_string());
     }
+    ASSERT_GT(input_string.size(), 0);
     ASSERT_EQ(input_string.size(),base_string.size());
 
 
