@@ -15,7 +15,7 @@ using namespace std;
 std::vector<nemo_message*> message_trace_elements;
 std::vector<std::string> message_trace_string;
 int OUTPUT_MODE = 2;
-
+void hb_commit_fun(tw_bf *bf, nemo_message *m, tw_lp *lp);
 int num_of_input_spikes = 3;
 void lif_pre_run(CoreLP *s, tw_lp *lp){
     auto cclp = (CoreLP * ) lp->cur_state;
@@ -119,6 +119,63 @@ st_model_types lif_test_trace[] =  {
 
 
 };
+/* Heartbeat testing helpers */
+std::vector<int> heartbeat_schedule;
+/* Heartbeat testing data helpers (since gtest won't be able to hook directly into this */
+struct test_hb_data {
+
+    double now;
+    long prev_neuro_tick;
+    long cur_neruo_tick;
+    long prev_leak_time;
+    long last_active_time;
+    std::string desc;
+};
+std::vector<test_hb_data> heartbeat_data;
+
+void hb_post_lp_init(tw_pe *pe){
+    //post init - we should create some events scheduled at intervals
+    tw_lp * test_core_lp = tw_getlocal_lp(0); // zero is the test core for our tests.
+    //we want to set the weights of the core's neurons to 0 so that we can ignore spikes and generate heartbeats only
+    auto the_core  = (LIFCore *) ((CoreLP*) test_core_lp->cur_state)->getCore();
+    for(int i =0; i < LIF_NEURONS_PER_CORE; i ++){
+        for(int j = 0; j < LIF_NEURONS_PER_CORE; j ++){
+            the_core->weights[i][j] = 0;
+        }
+    }
+    for(auto sched_time : heartbeat_schedule){
+        tw_event * e = tw_event_new(0,sched_time, test_core_lp);
+        nemo_message *message = (nemo_message *) tw_event_data(e);
+        message->intended_neuro_tick = (int) sched_time;
+        message->source_core = -1;
+        message->dest_axon = 1;
+
+        tw_event_send(e);
+
+    }
+
+}
+void hb_commit_fun(tw_bf *bf, nemo_message *m, tw_lp *lp){
+    auto core = (CoreLP*) lp->cur_state;
+    if(lp->gid != 0)
+        return;
+    auto core_in = core->getCore();
+    test_hb_data data{tw_now(lp),core_in->previous_neuro_tick, core_in->current_neuro_tick,
+                      core_in->last_leak_time,core_in->last_active_time, std::string{"HB Tick - PreFWD"}};
+    heartbeat_data.push_back(data);
+    CoreLP::core_commit(core,bf,m,lp);
+    test_hb_data data2{tw_now(lp),core_in->previous_neuro_tick, core_in->current_neuro_tick,
+                      core_in->last_leak_time,core_in->last_active_time, std::string{"HB Tick - PreFWD"}};
+    heartbeat_data.push_back(data2);
+
+}
+tw_petype heartbeat_lpe_tests{
+        //tw_petype main_pe={
+       0,
+        (pe_init_f) hb_post_lp_init,
+        0,
+        0
+};
 
 class LIFCore_test: public ::testing::Test {
 
@@ -191,7 +248,25 @@ std::string generate_csv(int source_core, int start_neuro, int end_neuro, int de
 
 }
 
+/* Heartbeat Timing Tests */
 
+TEST_F(LIFCore_test, LIF_Heartbeat_Timing){
+    //we need to test heartbeat mechanics
+    //test a schedule of spikes at time 1, 2, 3, 4, 5, 10, 20.
+    heartbeat_schedule = vector<int>{1,2,3,4,5,10,20};
+    OUTPUT_MODE=2;
+    number_of_active_neurons=0;
+    g_tw_ts_end = 60;
+    num_of_input_spikes = 0;
+
+    set_init_ross(2);
+
+    auto pe = tw_getpe(0);
+    pe->type.post_lp_init = (pe_init_f) hb_post_lp_init;
+    auto lp = tw_getlp(0);
+    lp->type->commit = (commit_f) hb_commit_fun;
+    tw_run();
+}
 TEST_F(LIFCore_test, CoreOutput){
     OUTPUT_MODE=2;
     output_test = true;

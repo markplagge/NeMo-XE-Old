@@ -108,7 +108,7 @@ void INeuroCoreBase::forward_heartbeat_handler() {
             this->send_heartbeat();
 
         }else{// some error conditions:
-            if(cur_message->intended_neuro_tick > this->current_neuro_tick){
+            if(cur_message->intended_neuro_tick <= this->current_neuro_tick){
                 tw_error(TW_LOC, "Got a spike intended for t %d, but heartbeat has been sent and LP is active at time %d.\n"
                                  "Details:\n"
                                  "CoreID: %i \n"

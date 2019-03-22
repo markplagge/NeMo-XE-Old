@@ -403,9 +403,9 @@ void test_output_pe_init(tw_pe * pe){
 
 }
 tw_petype test_pe = {
-        NULL, //(pe_init_f) test_leak_pe_init_one,
+        0, //(pe_init_f) test_leak_pe_init_one,
         (pe_init_f) test_leak_pe_init_one,
-        NULL,
+        0,
         0
 };
 
@@ -547,3 +547,4 @@ TEST_F(CoreTest, template_funs){
             {0},
     };
  }
+
