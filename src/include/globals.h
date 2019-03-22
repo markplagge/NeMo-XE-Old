@@ -19,7 +19,7 @@
 /**
  * JITTER(rng) -> macro for adding a jitter value to sent messages.
  */
-#define JITTER_SCALE  10000
+#define JITTER_SCALE  1000
 #define JITTER(rng) tw_rand_unif(rng) / JITTER_SCALE
 
 //#define JITTER (tw_rand_unif(lp->rng,0,JITTER_SCALE) / 10000)

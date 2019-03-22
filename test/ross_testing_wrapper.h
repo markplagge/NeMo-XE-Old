@@ -92,7 +92,7 @@ struct DummyLP {
     virtual void set_core_output_to_me_tn(int core_id){
         tw_lp *lp = tw_getlp(core_id);
         CoreLP *core_lp = (CoreLP *) lp->cur_state;
-        TrueNorthCore *tnc = dynamic_cast<TrueNorthCore *> (core_lp->getCore());
+        TrueNorthCore *tnc = dynamic_cast<TrueNorthCore *> (core_lp->get_core());
         for(int i = 0; i < NEURONS_PER_TN_CORE; i ++){
             for(int j = 0; j < WEIGHTS_PER_TN_NEURON; j++) {
                 tnc->destination_cores[i][j] = core_id;

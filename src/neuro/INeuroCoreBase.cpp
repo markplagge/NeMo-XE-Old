@@ -45,6 +45,8 @@ INeuroCoreBase::INeuroCoreBase()  {
  * C runs fire/reset function
  */
 void INeuroCoreBase::forward_heartbeat_handler() {
+    nemo_message m = *this->cur_message;
+    nemo_message_debug.push_back(m);
     // Generic error checking:
 
     if(!heartbeat_sent && cur_message->message_type == HEARTBEAT){
@@ -60,7 +62,11 @@ void INeuroCoreBase::forward_heartbeat_handler() {
     if(cur_message->message_type == NEURON_SPIKE){ // this if statement is a double check on the calling function
         if(heartbeat_sent && cur_message->intended_neuro_tick > current_neuro_tick){
 
-            tw_error(TW_LOC, "Got a spike with an out of bounds tick.\n %s\n", this->cur_message->to_string().c_str());
+            tw_error(TW_LOC, "Got a spike with an out of bounds tick.\n %s\n"
+
+                             "Current core tick: %li\n"
+                             "Current time: %Lf \n", this->cur_message->to_string().c_str(),this->current_neuro_tick,
+                             tw_now(this->my_lp));
         }
         evt_stat = BF_Event_Status :: Spike_Rec;
         /**
@@ -94,7 +100,7 @@ void INeuroCoreBase::forward_heartbeat_handler() {
         } else if(current_neuro_tick == cur_message->intended_neuro_tick){
             my_bf->c0 = 0;
         }else{
-            tw_error(TW_LOC, "Invalid tick times\n");
+            tw_error(TW_LOC, "Invalid tick times:\nMsg Data:\n %s \n current_neuro_tick: %d \n", cur_message->to_string().c_str(), this->current_neuro_tick);
         }
 
 
@@ -108,7 +114,7 @@ void INeuroCoreBase::forward_heartbeat_handler() {
             this->send_heartbeat();
 
         }else{// some error conditions:
-            if(cur_message->intended_neuro_tick <= this->current_neuro_tick){
+            if(cur_message->intended_neuro_tick != this->current_neuro_tick){
                 tw_error(TW_LOC, "Got a spike intended for t %d, but heartbeat has been sent and LP is active at time %d.\n"
                                  "Details:\n"
                                  "CoreID: %i \n"
@@ -153,7 +159,8 @@ void INeuroCoreBase::send_heartbeat() {
     RNG_START(my_lp);
 
     auto now = tw_now(my_lp);
-    auto next_tick = get_next_neurosynaptic_tick(tw_now(my_lp)) + JITTER(my_lp->rng);
+    //auto next_tick = get_next_neurosynaptic_tick(tw_now(my_lp));
+    auto next_tick = 1.0;
     tw_event *heartbeat_event = tw_event_new(my_lp->gid,next_tick, my_lp);
     nemo_message *msg = (nemo_message *) tw_event_data(heartbeat_event);
     msg->intended_neuro_tick = next_tick;
@@ -165,7 +172,7 @@ void INeuroCoreBase::send_heartbeat() {
     msg->dest_axon = -1;
 
     RNG_END(my_lp);
-
+    heartbeat_scheduled_send_times.push_back(get_next_neurosynaptic_tick(tw_now(my_lp)));
     tw_event_send(heartbeat_event);
 
 

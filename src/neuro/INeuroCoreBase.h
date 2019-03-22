@@ -155,6 +155,8 @@ struct INeuroCoreBase{
     BF_Event_Status evt_stat;
 
 
+    std::vector<double> heartbeat_scheduled_send_times;
+    std::vector<nemo_message> nemo_message_debug;
 
 };
 

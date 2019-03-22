@@ -51,7 +51,33 @@ public:
 
     int core_creation_mode = 0;
 
-    static void pre_run(CoreLP *s, tw_lp *lp) { s->core->pre_run(lp); }
+    static void pre_run(CoreLP *s, tw_lp *lp) { s->core->pre_run(lp);
+        // testing heartbeat code - remove once tested or enclose in a #
+        tw_lp * test_core_lp = lp; //tw_getlocal_lp(0); // zero is the test core for our tests.
+        //we want to set the weights of the core's neurons to 0 so that we can ignore spikes and generate heartbeats only
+        auto heartbeat_schedule = s->heartbeat_schedule;
+        std::sort(heartbeat_schedule.begin(), heartbeat_schedule.end());
+        std::reverse(heartbeat_schedule.begin(), heartbeat_schedule.end());
+        for(auto sched_time : heartbeat_schedule){
+            if(sched_time != 1){
+                if(sched_time < 0){
+                    sched_time = 1;
+                }
+
+                double send_time = sched_time - 1;
+                send_time += JITTER(test_core_lp->rng);
+                tw_event * e = tw_event_new(0,send_time, test_core_lp);
+                auto *message = (nemo_message *) tw_event_data(e);
+                message->intended_neuro_tick = (int) sched_time;
+                message->source_core = -1;
+                message->dest_axon = 1;
+                message->debug_time = send_time;
+                std::cout << "Msg send time:  " << send_time << "\n";
+
+                tw_event_send(e);
+            }
+        }
+    }
 
     static void forward_event(CoreLP *s, tw_bf *bf, nemo_message *m, tw_lp *lp) { s->core->forward_event(bf, m, lp); }
 
@@ -63,12 +89,12 @@ public:
 
     void create_core(tw_lp *lp);
 
-    INeuroCoreBase *getCore() const {
+    INeuroCoreBase *get_core() const {
         return core;
     }
 
     void setCore(INeuroCoreBase *core);
-
+    std::vector<int> heartbeat_schedule;
 private:
     INeuroCoreBase *core;
     int active;
