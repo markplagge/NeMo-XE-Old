@@ -45,8 +45,7 @@ INeuroCoreBase::INeuroCoreBase()  {
  * C runs fire/reset function
  */
 void INeuroCoreBase::forward_heartbeat_handler() {
-    nemo_message m = *this->cur_message;
-    nemo_message_debug.push_back(m);
+
     // Generic error checking:
 
     if(!heartbeat_sent && cur_message->message_type == HEARTBEAT){
@@ -172,7 +171,7 @@ void INeuroCoreBase::send_heartbeat() {
     msg->dest_axon = -1;
 
     RNG_END(my_lp);
-    heartbeat_scheduled_send_times.push_back(get_next_neurosynaptic_tick(tw_now(my_lp)));
+
     tw_event_send(heartbeat_event);
 
 

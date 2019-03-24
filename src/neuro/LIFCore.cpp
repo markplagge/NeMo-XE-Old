@@ -22,34 +22,7 @@ void LIFCore::pre_run(tw_lp *lp) {
     spike_output = new CoreOutputThread("lif_spikes");
 }
 
-void LIFCore::manage_neurosynaptic_tick(tw_bf *bf, nemo_message *m, tw_lp *lp) {
-//    //big tick logic:
-//    //We are at neurosynaptic tick X.
-//    //We have been active since last tick.
-//    //If we have an outstanding heartbeat:
-//    // AND this is a spike AND this is destined for the next tick,
-//    // this message was recevied out of order. (should not happen)
-//    // If we do not have an outstanding heartbeat:
-//    // AND this message is a heartbeat, error
-//    // Otherwise, we need to retroactively compute the leak for the previous ticks:
-//    if(heartbeat_sent && m->intended_neuro_tick > current_neuro_tick){
-//        tw_error(TW_LOC, "Got a spike with an out of bounds tick.\n");
-//    }
-//    if(!heartbeat_sent && m->message_type == HEARTBEAT){
-//        tw_error(TW_LOC, "Got a heartbeat when no heartbeat was expected.\n");
-//    }
-//    //set heartbeat values:
-//    if(current_neuro_tick < m->intended_neuro_tick) {
-//        previous_neuro_tick = current_neuro_tick;
-//        bf->c0 = 1; // big tick change alert.
-//        current_neuro_tick = m->intended_neuro_tick;
-//    }else if (current_neuro_tick == m->intended_neuro_tick){
-//            // no tick change, just integrate;
-//        bf->c0 = 0;
-//    }else{
-//        tw_error(TW_LOC, "Invalid tick times.\n ");
-//    }
-}
+
 
 void LIFCore::forward_event(tw_bf *bf, nemo_message *m, tw_lp *lp) {
     this->my_lp = lp;
