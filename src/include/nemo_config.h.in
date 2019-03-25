@@ -1,0 +1,8 @@
+#ifndef __NEMO_NEMO_CONFIG_H__
+#define __NEMO_NEMO_CONFIG_H__
+
+#define SAVE_MEMBRANE_POTS @NeMo_Save_Membrane@
+
+
+
+#endif

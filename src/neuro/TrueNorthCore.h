@@ -9,15 +9,7 @@
 #ifndef NEMO2_TRUENORTHCORE_H
 #define NEMO2_TRUENORTHCORE_H
 
-/**
- * @defgroup tn_const TrueNorth Neuron Limitations
- * Contains TrueNorth network constants
- * @{
- */
-constexpr int NEURONS_PER_TN_CORE = 256;
-constexpr int WEIGHTS_PER_TN_NEURON = 4;
-constexpr int MAX_OUTPUT_PER_TN_NEURON = 1;
-/** @} */
+
 
 /**
  * TrueNorthCore - A neurosynaptic core containing TrueNorth neurons.

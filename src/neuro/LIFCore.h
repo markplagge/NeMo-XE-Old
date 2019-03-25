@@ -11,9 +11,6 @@
 #include "../include/CoreOutput.h"
 
 
-// LIF Core settings:
-constexpr int LIF_NEURONS_PER_CORE = 256;
-constexpr int LIF_NUM_OUTPUTS = 256;
 
 
 struct LIFCore: public INeuroCoreBase {
