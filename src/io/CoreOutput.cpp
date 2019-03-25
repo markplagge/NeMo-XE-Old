@@ -104,8 +104,14 @@ void CoreOutputThread::save_spike(SpikeData spike) {
 }
 
 CoreOutputThread::~CoreOutputThread() {
+    if(verbose_output){
+        std::cout << "Finishing output\n";
+    }
     producer_running.store(false);
     // wait for threads to finish
+    if(verbose_output){
+        std::cout << "Thread join\n";
+    }
     writer_thread.join();
     // close the threads
     posix_file.close();
@@ -129,5 +135,17 @@ void CoreOutputThread::writer() {
         auto test_str = d.to_csv();
         posix_file << d.to_csv() << "\n";
     }
+}
+
+void CoreOutputThread::setProducerRunning(const std::atomic_bool &producerRunning) {
+    producer_running.store(producerRunning);
+
+}
+
+void CoreOutputThread::shutdown_thread() {
+    setProducerRunning(false);
+    if(writer_thread.joinable())
+        writer_thread.join();
+    close_posix_file();
 }
 

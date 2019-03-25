@@ -2,7 +2,7 @@
 // Created by Mark Plagge on 2019-02-20.
 //
 
-#include "mapping.h"
+#include "include/mapping.h"
 nemo_id_type get_core_from_gid(tw_lpid gid){
     // Assuming a linear map for now
     // since GIDs are 0-n, the gid will be == to the core#.

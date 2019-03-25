@@ -1,14 +1,16 @@
 #include <gtest/gtest.h>
 #include "../external/ROSS/core/ross.h"
-#include "../src/neuro/core.h"
-#include "../src/mapping.h"
+#include "../src/neuro/INeuroCoreBase.h"
+#include "../src/include/mapping.h"
 #include "TrueNorthCoreLogger.h"
 #include "../src/neuro/TrueNorthCore.h"
+#include "../src/include/CoreLP.h"
 
 #include <iostream>
 #include <fstream>
 static std::vector<nemo_message*> message_trace_elements;
 static std::vector<std::string> message_trace_string;
+//std::vector<core_types> core_type_map;
 char * SPIKE_OUTPUT_FILENAME;
 struct DummyLP {
 
@@ -87,7 +89,7 @@ struct DummyLP {
     virtual void set_core_output_to_me_tn(int core_id){
         tw_lp *lp = tw_getlp(core_id);
         CoreLP *core_lp = (CoreLP *) lp->cur_state;
-        TrueNorthCore *tnc = dynamic_cast<TrueNorthCore *> (core_lp->getCore());
+        TrueNorthCore *tnc = dynamic_cast<TrueNorthCore *> (core_lp->get_core());
         for(int i = 0; i < NEURONS_PER_TN_CORE; i ++){
             for(int j = 0; j < WEIGHTS_PER_TN_NEURON; j++) {
                 tnc->destination_cores[i][j] = core_id;
@@ -118,7 +120,7 @@ void core_init_test(CoreLP * core_lp, tw_lp *lp){
 
     //run the core initialization:
     CoreLP::core_init(core_lp, lp);
-    TrueNorthCore *core = (TrueNorthCore *) ((CoreLP*)lp->cur_state)->getCore();
+    TrueNorthCore *core = (TrueNorthCore *) ((CoreLP *) lp->cur_state)->get_core();
     for(int i = 0; i < NEURONS_PER_TN_CORE; i ++){
         for(int j = 0; j < NEURONS_PER_TN_CORE; j ++) {
             core->weights[i][j] = 1;
@@ -141,8 +143,8 @@ void core_init_test(CoreLP * core_lp, tw_lp *lp){
 
 void core_pre_run_test(CoreLP *s, tw_lp *lp){
     auto cclp = (CoreLP *)lp->cur_state;
-    cclp->getCore()->core_init(lp);
-    cclp->getCore()->pre_run(lp);
+    cclp->get_core()->core_init(lp);
+    cclp->get_core()->pre_run(lp);
     tw_event * evt = tw_event_new(lp->gid, 0.1, lp);
     nemo_message *msg = (nemo_message*) tw_event_data(evt);
     msg->message_type = NEURON_SPIKE;
@@ -215,7 +217,8 @@ protected:
     void SetUp() override{
         SPIKE_OUTPUT_FILENAME = (char*) calloc(128,sizeof(char));
         sprintf(SPIKE_OUTPUT_FILENAME, "test_case_output");
-
+        core_type_map.push_back(TN);
+        core_type_map.push_back(TN);
         test_core = new TrueNorthCore(0, 0); // core 0 tests;
 //        lp = (tw_lp *) calloc(1, sizeof(tw_lp));
 //        lp->rng = rng_init(1,2);
@@ -311,7 +314,7 @@ protected:
 //    set_init_ross(2);
 //
 //    DummyLP *stat_lp = (DummyLP*) tw_getlp(1)->cur_state;
-//    //TrueNorthCore *core = (TrueNorthCore *) ((CoreLP*)tw_getlp(0)->cur_state)->getCore();
+//    //TrueNorthCore *core = (TrueNorthCore *) ((CoreLP*)tw_getlp(0)->cur_state)->get_core();
 //    //stat_lp->set_core_output_to_me_tn(0);
 //    tw_run();
 //    /* check the dummy lp events */
@@ -339,7 +342,7 @@ void test_leak_pe_init_one(tw_pe * pe){
     logger_core->core_init(tw_getlocal_lp(0));
     core_lp->setCore(logger_core);
 
-    auto tn_core = (TrueNorthCoreLogger *) core_lp->getCore();
+    auto tn_core = (TrueNorthCoreLogger *) core_lp->get_core();
     //set up leaks based on test pattern:
     /* n0 : negative leak 1
      * n1 : negative leak 2
@@ -372,7 +375,7 @@ void test_leak_pe_init_one(tw_pe * pe){
     // now queue up the messages:
     tw_lp *lp = tw_getlp(0);
     auto cclp = (CoreLP *)lp->cur_state;
-    cclp->getCore()->core_init(lp);
+    cclp->get_core()->core_init(lp);
     tw_event * evt = tw_event_new(lp->gid, 0.1, lp);
     nemo_message *msg = (nemo_message*) tw_event_data(evt);
     msg->message_type = NEURON_SPIKE;
@@ -387,7 +390,7 @@ void test_output_pe_init(tw_pe * pe){
     std::cout << "Output PE init \n";
     test_leak_pe_init_one(pe);
     auto core_lp = (CoreLP *) tw_getlp(0)->cur_state;
-    auto tn_core = (TrueNorthCoreLogger *) core_lp->getCore();
+    auto tn_core = (TrueNorthCoreLogger *) core_lp->get_core();
     for(int i =0; i  < NEURONS_PER_TN_CORE; i ++){
         for(int j = 0; j < MAX_OUTPUT_PER_TN_NEURON; j++){
             tn_core->destination_axons[i][j] = -1;
@@ -400,9 +403,9 @@ void test_output_pe_init(tw_pe * pe){
 
 }
 tw_petype test_pe = {
-        NULL, //(pe_init_f) test_leak_pe_init_one,
+        0, //(pe_init_f) test_leak_pe_init_one,
         (pe_init_f) test_leak_pe_init_one,
-        NULL,
+        0,
         0
 };
 
@@ -434,7 +437,7 @@ tw_petype test_pe = {
     messages <<"original mpot,new_mpot,time\n";
 
     auto stat_lp = (DummyLP*) tw_getlp(1)->cur_state;
-    auto core = (TrueNorthCoreLogger*)((CoreLP*)tw_getlp(0)->cur_state)->getCore();
+    auto core = (TrueNorthCoreLogger*) ((CoreLP *) tw_getlp(0)->cur_state)->get_core();
 
     messages <<core->mpot_to_string(true);
     messages.close();
@@ -519,4 +522,29 @@ TEST_F(CoreTest, BF_Heartbeat_Enum){
     //bf1 = as_integer(hb_sent);
 
 }
+
+TEST_F(CoreTest, template_funs){
+    tw_lptype fn_lps[] = {
+            {
+                (init_f)CoreLP::core_init,
+                    (pre_run_f) core_pre_run_test,
+                    (event_f) CoreLP::forward_event,
+                    (revent_f) CoreLP::reverse_event,
+                    (commit_f) CoreLP::core_commit,
+                    (final_f) CoreLP::core_finish,
+                    (map_f) nemo_map_linear,
+                    sizeof(INeuroCoreBase)},
+            {
+             (init_f)    DummyLP::dummy_init,
+                    (pre_run_f) DummyLP::dummy_pre_run,
+                    (event_f)   DummyLP::dummy_forward_event,
+                    (revent_f)  DummyLP::dummy_reverse_event,
+                    (commit_f)  DummyLP::dummy_commit,
+                    (final_f)   DummyLP::dummy_final,
+                    (map_f) nemo_map_linear,
+                    sizeof(DummyLP)
+            },
+            {0},
+    };
+ }
 

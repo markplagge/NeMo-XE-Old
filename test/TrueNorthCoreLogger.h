@@ -8,7 +8,7 @@
 
 #include <core/ross.h>
 #include "../src/include/globals.h"
-#include "../src/neuro/core.h"
+#include "../src/neuro/INeuroCoreBase.h"
 
 #include "../src/neuro/TrueNorthCore.h"
 
@@ -46,7 +46,7 @@ struct TrueNorthCoreLogger : TrueNorthCore{
     std::vector<nemo_volt_type> membrane_potential_v;
 
 
-    void forward_event(tw_bf *bf, nemo_message *m, tw_lp *lp) override;
+    void forward_event(tw_bf *bf, nemo_message *m, tw_lp *lp) ;
 
     TrueNorthCoreLogger(int coreLocalId);
     std::string mpot_to_string(bool only_changed);

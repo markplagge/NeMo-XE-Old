@@ -14,8 +14,48 @@
 #include <string>
 #include <stdarg.h>  // For va_start, etc.
 #include <memory>    // For std::unique_ptr
-/** @defgroup global_macros Global Macro helper functions */
-#define JITTER(rng,c) tw_rand_unif((rng))
+#include <vector>
+/** @defgroup global_macros Global Macro helper functions  *{ */
+/**
+ * JITTER(rng) -> macro for adding a jitter value to sent messages.
+ */
+#define JITTER_SCALE  1000
+#define JITTER(rng) tw_rand_unif(rng) / JITTER_SCALE
+
+//#define JITTER (tw_rand_unif(lp->rng,0,JITTER_SCALE) / 10000)
+
+/** @} */
+
+/** @defgroup time_helpers
+ * Helper functions and macros for ROSS timing
+ * @{
+ */
+#define LITTLE_TICK = (double) 1/1000
+#define BIG_TICK = 1
+
+
+unsigned long get_neurosynaptic_tick(double now);
+
+/** @todo: use this macro rather than calling yet another function and write more macros for timing */
+#define GET_NEUROSYNAPTIC_TICK(now) long(now)
+
+unsigned long get_next_neurosynaptic_tick(double now);
+
+/**
+ * lt_offset - This is the value of the next little tick. Use this when creating events in the
+ * tw_offset.
+ */
+#define lt_offset(rng) = JITTER(rng) + LITTLE_TICK
+/**
+ * bt_offset - This is offset for the next big tick. Can use this when creating events in the tw_offset for
+ * the next big tick event.
+ */
+#define bt_offset(rng) JITTER(rng) + BIG_TICK
+
+
+/**@} */
+
+
 /** @defgroup types Typedef Vars
  * Typedefs to ensure proper types for the neuron parameters/mapping calculations
  * @{  */
@@ -34,18 +74,40 @@ typedef uint64_t stat_type;
 template<typename ... Args>
 std::string string_format( const std::string& format, Args ... args );
 
+typedef enum CoreTypes{
+    TN,
+    LIF
+}core_types;
+
+
 enum nemo_message_type{
     NEURON_SPIKE,
     HEARTBEAT
 };
+/** @} */
+
+/** @defgroup bf_evt BF_EventStatus
+ * Event Status enum / bitfield group. This group contains elements that manage the
+ * enum / flags for event status created in NeMo.
+ * @{
+ */
+
+
+
+/**
+ * BF_Event_Status - A descriptive specialized replacement for tw_bf.
+ * Flags the program flow when handling events.
+ */
 enum class BF_Event_Status:uint32_t{
-    None = 0x00, // No state changes happened
-    Heartbeat_Sent = (1u << 1), // a heartbeat message was sent
+    None = 0x00, //! No state changes happened
+    Heartbeat_Sent = (1u << 1), //! a heartbeat message was sent
     Spike_Sent = (1u << 2), //a spike message was sent
-    Output_Spike_Sent = (1u << 3), // a spike message to an output layer was sent
-    Heartbeat_Rec = (1u << 4), // A heartbeat was received
-    Spike_Rec = (1u << 5),
-    NS_Tick_Update = (1u << 6),
+    Output_Spike_Sent = (1u << 3), //! a spike message to an output layer was sent
+    Heartbeat_Rec = (1u << 4), //! A heartbeat was received
+    Spike_Rec = (1u << 5), //! A spike message was received
+    NS_Tick_Update = (1u << 6), //! We updated the neurosynaptic tick value
+    Leak_Update = (1u << 7), //! We updated the membrane potentials through a leak
+    FR_Update = (1u << 8) //! We updated the membrane potentials through fire/reset computations
 
 };
 template <typename Enumeration>
@@ -55,20 +117,32 @@ auto as_integer(Enumeration const value)-> typename std::underlying_type<Enumera
 
 
 
+
 inline BF_Event_Status operator|(BF_Event_Status a, BF_Event_Status b){
     return static_cast<BF_Event_Status> (as_integer(a) | as_integer(b));
 }
 
-
-template <typename I, typename E>
-inline bool in_the(I a , E b){
-    return a & static_cast<std::underlying_type_t<E>>(b);
-}
+/**
+ * Function that determines if the BF_Event_Status contains the supplied event.
+ * @tparam I
+ * @tparam E BF_Event_Status status or an integer.
+ * @param a Base event status. Is the event b in this flag?
+ * @param b Flag option - is this value in a?
+ * @return if the value b is in a, then true.
+ */
 
 
 
 inline BF_Event_Status operator&(BF_Event_Status a, BF_Event_Status b){
     return static_cast<BF_Event_Status> (as_integer(a) & as_integer(b) );
+}
+
+template < typename E>
+inline bool in_the(unsigned int a , E b){
+    return bool (a  & as_integer(b));
+}
+inline bool in_the(BF_Event_Status a, BF_Event_Status b){
+    return as_integer(a & b);
 }
 
 inline BF_Event_Status& operator|=(BF_Event_Status &a, BF_Event_Status b){
@@ -112,6 +186,32 @@ inline BF_Event_Status add_event_condition(BF_Event_Status event_status, BF_Even
 inline BF_Event_Status add_event_condiditon(BF_Event_Status new_event){
     return new_event;
 }
+template <typename NEW_EVT>
+inline BF_Event_Status add_evt_status(BF_Event_Status event_status, NEW_EVT new_event){
+    return event_status | new_event;
+}
+template <typename ... NEW_EVT>
+inline BF_Event_Status add_evt_status(BF_Event_Status  event_status, NEW_EVT ... new_event){
+    return event_status | add_evt_status(new_event...);
+}
+
+
+
+
+
+/** @}  @defgroup global_help Global Helpers.
+ * Global helper functions / classes which are used throughout NeMo @{ */
+
+/**
+ * crtp helper / basis class. Helps keep static polymorphism function boilerplate code managable.
+ * @tparam T
+ */
+template <typename T>
+struct crtp
+{
+    T& underlying() { return static_cast<T&>(*this); }
+    T const& underlying() const { return static_cast<T const&>(*this); }
+};
 
 /** Gives us the BINCOMP (binary comparison) function used for stochastic weight modes.
  * Takes the absolute value of the first value, and compares it to the seocnd. */
@@ -151,20 +251,48 @@ inline uint64_t get_gid_from_core_local(nemo_id_type dest_core, nemo_id_type des
     //currently, cores are GIDs since this is a strict linear map
     return (uint64_t) dest_core;
 }
+/**
+ * 2D Array helper template. Matrix is a 2D array using STD::Array
+ * @tparam T
+ * @tparam ROW
+ * @tparam COL
+ */
+template <class T, size_t ROW, size_t COL>
+using Matrix = std::array<std::array<T, COL>, ROW>;
 
 
+
+//template <class T, size_t ROW, size_t COL>
+//using VectorMatrix = std::vector<std::vector<T>>
 
 extern int NEURONS_PER_CORE;
 extern char *SPIKE_OUTPUT_FILENAME;
 extern int SPIKE_OUTPUT_MODE;
+extern int OUTPUT_MODE;
 
 //@todo: Move this to a config file that will be set up by CMAKE
 #define THREADED_WRITER 1
+extern std::vector<core_types> core_type_map;
 
+/** @} */
 
+/** @defgroup LIF_Model_Settings LIFModelSettings:
+ * Model settings - define the size of arrays, number of outputs per neuron, etc..
+ * @{
+ */
+// LIF Core settings:
+constexpr int LIF_NEURONS_PER_CORE = 256;
+constexpr int LIF_NUM_OUTPUTS = 256;
 
-
-unsigned long get_neurosynaptic_tick(double now);
-unsigned long get_next_neurosynaptic_tick(double now);
+/** @} */
+/**
+ * @defgroup tn_const TrueNorth Neuron Limitations
+ * Contains TrueNorth network constants
+ * @{
+ */
+constexpr int NEURONS_PER_TN_CORE = 256;
+constexpr int WEIGHTS_PER_TN_NEURON = 4;
+constexpr int MAX_OUTPUT_PER_TN_NEURON = 1;
+/** @} */
 
 #endif //NEMO2_GLOBALS_H

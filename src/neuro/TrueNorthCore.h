@@ -9,15 +9,7 @@
 #ifndef NEMO2_TRUENORTHCORE_H
 #define NEMO2_TRUENORTHCORE_H
 
-/**
- * @defgroup tn_const TrueNorth Neuron Limitations
- * Contains TrueNorth network constants
- * @{
- */
-constexpr int NEURONS_PER_TN_CORE = 256;
-constexpr int WEIGHTS_PER_TN_NEURON = 4;
-constexpr int MAX_OUTPUT_PER_TN_NEURON = 1;
-/** @} */
+
 
 /**
  * TrueNorthCore - A neurosynaptic core containing TrueNorth neurons.
@@ -26,23 +18,11 @@ constexpr int MAX_OUTPUT_PER_TN_NEURON = 1;
 struct TrueNorthCore: public INeuroCoreBase {
     //TrueNorth Neuron State Vectors
 
-    /**
-     * The last time that this core had activity. This refers to any  message.
-     */
-    tw_stime last_active_time = 0 ;
-    /**
-     * The last time this core computed the leak.
-     */
-    tw_stime last_leak_time= 0 ;
-    unsigned int current_neuro_tick = 0;
-    /**
-     * the local core id. If linear mapping is enabled, then this will be equal to the GID/PE id
-     */
-    int core_local_id;
-    /**
-     * A heartbeat check value.
-     */
-    bool heartbeat_sent = false;
+
+
+
+
+
     /**
      * If true, then one of the neurons in this core is self-firing.
      * When a core has a self firing neuron, it will send a heartbeat every
@@ -51,12 +31,7 @@ struct TrueNorthCore: public INeuroCoreBase {
     bool has_self_firing_neuron=false;
 
 
-    /**
-     * evt_stat holds the event status for the current event. This is used to compute
-     * reverse computation. BF_Event_Stats is used instead of the tw_bf as it allows
-     * more explicit naming. The concept is the same, however.
-     */
-    BF_Event_Status evt_stat;
+
 
     /** Firing status of the neurons.
      * For each neuron, when the fire_reset() function is called,
@@ -269,6 +244,6 @@ private:
 
 };
 /** @} */
-#include "core.h"
+#include "INeuroCoreBase.h"
 
 #endif //NEMO2_TRUENORTHCORE_H

@@ -1,10 +1,10 @@
 #include <ross.h>
 #include <iostream>
 #include <mpi.h>
-#include "neuro/core.h"
+#include "neuro/INeuroCoreBase.h"
 #include "include/globals.h"
 #include "neuro/neuron_generic.h"
-#include "mapping.h"
+#include "include/mapping.h"
 using namespace std;
 int NEURONS_PER_CORE;
 

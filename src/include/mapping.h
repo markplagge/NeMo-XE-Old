@@ -10,7 +10,7 @@
 #define NEMO2_MAPPING_H
 
 #include <ross.h>
-#include "./include/globals.h"
+#include "globals.h"
 /**
  * @brief      Gets the pe from gid.
  *
