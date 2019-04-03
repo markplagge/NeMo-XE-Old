@@ -90,6 +90,9 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/ROSS)
 set_target_properties(ROSS PROPERTIES ROSS_timing OFF)
 
+#TN JSON PARSER
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/model_reader)
+
 set(ROSS_timing OFF CACHE BOOL "Disable ROSS Timing" FORCE6)
 set(EXTERNAL_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/external)
 

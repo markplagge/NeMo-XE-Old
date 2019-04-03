@@ -9,7 +9,7 @@
 #ifndef NEMO2_TRUENORTHCORE_H
 #define NEMO2_TRUENORTHCORE_H
 
-
+#include "INeuroCoreBase.h"
 
 /**
  * TrueNorthCore - A neurosynaptic core containing TrueNorth neurons.
@@ -188,6 +188,8 @@ struct TrueNorthCore: public INeuroCoreBase {
                           bool *b, bool epsilon, short sigma_l, short lambda, bool c, int alpha, int beta,
                           short TM, short VR, short sigmaVR, short gamma, bool kappa, int signal_delay,
                           const nemo_id_type dest_core[], const nemo_id_type dest_axon[]);
+
+
     /**
      * TN Neurons compute a PRN value based on a random number and a bit mask. This function recreates this behavior.
      * @param p_mask

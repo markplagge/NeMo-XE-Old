@@ -9,13 +9,14 @@ include_directories(${ROSS_SOURCE_DIR} ${ROSS_BINARY_DIR})
 
 message(${EXTERNAL_INCLUDE})
 
-
 include_directories(${EXTERNAL_INCLUDE} ${EXTERNAL_INCLUDE}/include)
+
 message(" --- ROSS AT ${ROSS_SOURCE_DIR}")
 ## NEMO COMPILE-TIME CONFIG SETTINGS ##
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 
 ## Configure options for global compile / OPEN MP
 find_package(OpenMP)
@@ -27,27 +28,19 @@ endif()
 ## Configure RapidJSON
 #set(RAPIDJSON_USE_SSE2 OFF CACHE BOOL "Use SSE2 for RapidJSON")
 set(RAPIDJSON_USE_SSE42 ON CACHE BOOL "Use SSE4 for RapidJSON")
-
-find_package(RapidJSON)
+find_package(RapidJSON REQUIRED)
 message("RD: ${RAPIDJSON_INCLUDE_DIRS}")
 if(${RAPIDJSON_USE_SSE42})
     set(RAPIDJSON_CXX_FLAGS "-DRAPIDJSON_SSE42 -msse4.2")
 endif()
 message("RD FLAGS: ${RAPIDJSON_CXX_FLAGS}")
-if(${RAPIDJSON_FOUND})
+include_directories("${RAPIDJSON_INCLUDE_DIRS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${RAPIDJSON_CXX_FLAGS}")
 
-    include_directories("${RAPIDJSON_INCLUDE_DIR}")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${RAPIDJSON_CXX_FLAGS}")
-
-        else()
-    include_directories("${EXTERNAL_INCLUDE}/rapidjson")
-
-
-    endif()
 # Special Config options for OMP offload tests
 
 
-## Include the TN Model JSON Parsing Library
+
 
 ## Set up the main project
 set(nemo_lib_srcs include/globals.h globals.cpp
@@ -61,7 +54,7 @@ set(nemo_lib_srcs include/globals.h globals.cpp
         ../external/include/concurrentqueue.h
         ../external/include/blockingconcurrentqueue.h
         neuro/LIFCore.cpp neuro/LIFCore.h
-        neuro/CoreLP.cpp include/CoreLP.h)
+        neuro/CoreLP.cpp include/CoreLP.h  include/nemo_input.h io/tn_parser_wrapper.cpp)
 set(nemo_app_srcs main.cpp include/globals.h globals.cpp)
 
 ## Add required libraries
@@ -69,7 +62,7 @@ set(nemo_app_srcs main.cpp include/globals.h globals.cpp)
 add_library(nemo2_lib STATIC ${nemo_lib_srcs})
 add_executable(nemo2 ${nemo_app_srcs})
 ##Main NeMo2_lib Required Libraries: ########3
-list(APPEND LBS  ROSS)
+list(APPEND LBS  ROSS  )
 target_compile_features(nemo2_lib PRIVATE cxx_std_14)
 target_compile_features(nemo2 PRIVATE cxx_std_14)
 
