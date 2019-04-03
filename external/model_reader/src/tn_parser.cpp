@@ -2,6 +2,7 @@
 // Created by Mark Plagge on 8/8/18.
 //
 
+#include <memory>
 #include "../include/tn_parser.hh"
 
 int char2int(char input) {
@@ -108,7 +109,8 @@ void tn_create_neuron(id_type coreID, id_type nID,
     n->negThreshold = beta;
     // n->thresholdMaskBits = TM;
     // n->thresholdPRNMask = getBitMask(n->thresholdMaskBits);
-    n->sigmaVR = SGN(VR);
+
+    n->sigmaVR = ((VR > 0) - (VR < 0));;
     n->encodedResetVoltage = VR;
     n->resetVoltage = VR;  //* sigmaVR;
 
@@ -127,8 +129,8 @@ void tn_create_neuron(id_type coreID, id_type nID,
     // synaptic neuron setup:
     n->largestRandomValue = n->thresholdPRNMask;
     if (n->largestRandomValue > 256) {
-        tw_error(TW_LOC, "Error - neuron (%i,%i) has a PRN Max greater than 256\n ",
-                 n->myCoreID, n->myLocalID);
+        std::cout << "Error - neuron (%i,%i) has a PRN Max greater than 256\n " << n->myCoreID << n->myLocalID << "\n";
+        exit(1);
     }
     // just using this rather than bit shadowing.
 
@@ -220,9 +222,9 @@ void TN_State_Wrapper::initialize_state(int *input_axon_connectivity,
 
 }
 
-void TN_State_Wrapper::initialize_state(tnClass tn){
-
-}
+//void TN_State_Wrapper::initialize_state(tnClass tn){
+//
+//}
 ///**
 // * initialize_state - Given a pre-init tn_neuron_state, will set
 // * the *tn pointer to the address of the passed in value.
@@ -594,6 +596,10 @@ void TN_Neuron_Type::new_neuron_state_init_struct(vector<unsigned int> input_axo
     n->synapticWeight[1] = var_types["sigma1"];
     n->synapticWeight[2] = var_types["sigma2"];
     n->synapticWeight[3] = var_types["sigma3"];
+    n->sigma[0] = var_types["sigma0"];
+    n->sigma[1] = n->synapticWeight[1] = var_types["sigma1"];
+    n->sigma[2] = n->synapticWeight[2] = var_types["sigma2"];
+    n->sigma[3] = n->synapticWeight[3] = var_types["sigma3"];
     n->weightSelection[0] = var_types["b0"];
     n->weightSelection[1] = var_types["b1"];
     n->weightSelection[2] = var_types["b2"];
@@ -1640,7 +1646,7 @@ TN_Main create_tn_data(string filename) {
     //return the main model.
 #ifdef DEBUG
     long num_cores_in_js = model.core_count;
-    tw_printf(TW_LOC, "Model loaded - found %li cores defined neurons\n", num_cores_in_js);
+    printf( "Model loaded - found %li cores defined neurons\n", num_cores_in_js);
 #endif
     free(json_str);
     fclose(f);

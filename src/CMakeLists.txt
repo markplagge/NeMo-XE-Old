@@ -25,17 +25,6 @@ if(NEMO_USE_OPENMP)
     set(NEMO_USE_GPU 0 CACHE BOOL "Use GPU offloading if available for NeMo?")
 endif()
 
-## Configure RapidJSON
-#set(RAPIDJSON_USE_SSE2 OFF CACHE BOOL "Use SSE2 for RapidJSON")
-set(RAPIDJSON_USE_SSE42 ON CACHE BOOL "Use SSE4 for RapidJSON")
-find_package(RapidJSON REQUIRED)
-message("RD: ${RAPIDJSON_INCLUDE_DIRS}")
-if(${RAPIDJSON_USE_SSE42})
-    set(RAPIDJSON_CXX_FLAGS "-DRAPIDJSON_SSE42 -msse4.2")
-endif()
-message("RD FLAGS: ${RAPIDJSON_CXX_FLAGS}")
-include_directories("${RAPIDJSON_INCLUDE_DIRS}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${RAPIDJSON_CXX_FLAGS}")
 
 # Special Config options for OMP offload tests
 

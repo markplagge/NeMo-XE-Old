@@ -1,11 +1,25 @@
 //
 // Created by Mark Plagge on 2019-03-26.
-//
+
 
 #include "../include/nemo_input.h"
 
+void TNJSWrapper::set_neuron_in_core(TrueNorthCore& core, unsigned int neuron_id){
+    //create a neuron on the stack
+    tn_neuron_state *neu = {};
+    this->model->populate_neuron_from_id(core.core_local_id,neuron_id,neu);
+    const  long dest_core[1] = {(long)neu->dest_core[0]};
+    const  long dest_axon[1] = {(long)neu->dest_axon[0]};
 
-void TNJSWrapper::set_core(const TrueNorthCore& core){
+    core.create_tn_neuron(neuron_id,neu->synapticConnectivity,neu->G_i,neu->sigma,neu->S,neu->weightSelection,neu->epsilon,
+            neu->sigma_l,neu->lambda,neu->c, neu->posThreshold,neu->negThreshold,neu->TM,neu->VR,neu->sigmaVR,neu->gamma,
+            neu->kappa,neu->delayVal,dest_core,dest_axon);
+//    core->create_tn_neuron(neuron_id,neu->synapticConnectivity,neu->G_i,neu->sigma,neu->S,neu->weightSelection,
+//            neu->epsilon,neu->sigma_l,neu->lambda,neu->c,neu->posThreshold,neu->negThreshold,neu->TM,neu->VR,neu->sigmaVR,
+//            neu->gamma,neu->kappa,neu->delayVal,neu->dest_core,neu-
+
+}
+void TNJSWrapper::set_core(TrueNorthCore& core){
 
     //iterate through the neurons in this core,
     //set the internal neuron state - neuron - using the model_reader lib
@@ -15,24 +29,9 @@ void TNJSWrapper::set_core(const TrueNorthCore& core){
         return; // out of bounds.
     }
     for(int i=0; i < NEURONS_PER_TN_CORE; i ++) {
-        set_neuron(core, i);
+        set_neuron_in_core(core, i);s
     }
 
 }
 
-void TNJSWrapper::set_neuron(const TrueNorthCore& core, int neuron_id) {
-    auto core_id = core.core_local_id;
-    //const auto neuron_hdlr = &this->neuron;
-    //auto new_neuron = this->model->create_neuron_from_id(core_id,neuron_id);
-    auto neuron_wrapper = this->model->generate_neurons_in_core_vec(core_id);
-    for(auto neuron : neuron_wrapper){
-        neuron.initialize_state(core);
-    }
-    //use the core's neuron setup function to initialize core values
-    //core->create_tn_neuron
 
-    }
-
-    void core_wrapper(const TrueNorthCore& core, unique_ptr<tn_neuron_state> n){
-    //core.create_tn_neuron(n->myLocalID,n->synapticConnectivity,)
-}

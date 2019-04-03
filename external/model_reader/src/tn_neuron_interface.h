@@ -37,8 +37,8 @@ struct tn_neuron_state {
     tw_lpid outputGID;  //!< The output GID (axon global ID) of this neuron.
 
     // stat_type fireCount; //!< count of this neuron's output
-    stat_type rcvdMsgCount;  //!<  The number of synaptic messages received.
-    stat_type SOPSCount;     //!<  A count for SOPS calculation
+    unsigned long rcvdMsgCount;  //!<  The number of synaptic messages received.
+    unsigned long SOPSCount;     //!<  A count for SOPS calculation
 
     // 32
     volt_type membranePotential;  //!< current "voltage" of neuron, \f$V_j(t)\f$.
