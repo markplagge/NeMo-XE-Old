@@ -29,7 +29,7 @@ void TNJSWrapper::set_core(TrueNorthCore& core){
         return; // out of bounds.
     }
     for(int i=0; i < NEURONS_PER_TN_CORE; i ++) {
-        set_neuron_in_core(core, i);s
+        set_neuron_in_core(core, i);
     }
 
 }
