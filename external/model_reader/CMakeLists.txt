@@ -6,8 +6,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMake)
 ## Configure RapidJSON
 #set(RAPIDJSON_USE_SSE2 OFF CACHE BOOL "Use SSE2 for RapidJSON")
 #set(RAPIDJSON_USE_SSE42 ON CACHE BOOL "Use SSE4 for RapidJSON")
-#find_package(RapidJSON REQUIRED)
-#message("RD: ${RAPIDJSON_INCLUDE_DIRS}")
+find_package(RapidJSON REQUIRED)
+message("RD: ${RAPIDJSON_INCLUDE_DIRS}")
 #if(${RAPIDJSON_USE_SSE42})
 #    set(RAPIDJSON_CXX_FLAGS "-DRAPIDJSON_SSE42 -msse4.2")
 #endif()
@@ -85,7 +85,7 @@ if(RapidJSON_FOUND)
     message("RJSON custom flags: ${RapidJSON_CXX_FLAGS}")
     set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} ${RapidJSON_CXX_FLAGS})
 else()
-    set(RapidJSON_INCLUDE_DIRS extern)
+    set(RapidJSON_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/extern/rapidjson)
     message("Did not find rapidjson - using internal build")
 endif()
 
@@ -106,7 +106,6 @@ ADD_EXECUTABLE(ModelReaderBin ${reader_srcs})
 
 target_include_directories(ModelReaderLib PUBLIC
         ${RapidJSON_INCLUDE_DIRS}
-
         )
 set_target_properties(ModelReaderBin
         PROPERTIES

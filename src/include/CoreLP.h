@@ -10,7 +10,7 @@
 #include <ross.h>
 #include "globals.h"
 #include "mapping.h"
-
+#include <algorithm>
 //////////////////////
 /**
  * CoreLP - This class is an adapter for ROSS to the C++ object system in NeMo2.

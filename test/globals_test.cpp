@@ -371,7 +371,7 @@ float result1 = test_simd(arr);
 }
 float test_simd(float * arr){
     float result = 0.0;
-#pragma omp parallel for  collapse()
+#pragma omp parallel for  collapse(2)
     for(int ii = arr_size - 1 ; ii >= 0; ii --) {
         for (int jj = arr_size - 1; jj >= 0; jj--) {
             result += 1 / sqrt( arr[index(ii,jj,arr_size)]);

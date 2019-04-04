@@ -260,7 +260,32 @@ inline uint64_t get_gid_from_core_local(nemo_id_type dest_core, nemo_id_type des
 template <class T, size_t ROW, size_t COL>
 using Matrix = std::array<std::array<T, COL>, ROW>;
 
+class NeMo_Global_Config{
+private:
+    static std::shared_ptr<NeMo_Global_Config> instance;
+    NeMo_Global_Config();
+    char ne_tn_json_input_path[1024] = {'\0'};
+    char ne_spike_input_path[1024]= {'\0'};
+    char ne_output_filename[1024]= {'\0'};
+    char ne_core_typemap_filename[1024] = {'\0'};
+    int ne_num_cores_in_sim = 4096;
+    int ne_num_neurons_per_core = 4096;
+public:
+    static std::shared_ptr<NeMo_Global_Config> getConfig(){
+        if(instance == 0){
+            instance = std::make_shared<NeMo_Global_Config>(NeMo_Global_Config());
+            instance->ne_core_typemap_filename = {'\0'};
+            instance->ne_spike_input_path = {'\0'};
+            instance->ne_output_filename =  {'\0'};
+            instance->ne_core_typemap_filename =  {'\0'};
+            instance->ne_num_cores_in_sim = 4096;
+            instance->ne_num_neurons_per_core = 256;
+        }
 
+
+
+
+};
 
 //template <class T, size_t ROW, size_t COL>
 //using VectorMatrix = std::vector<std::vector<T>>

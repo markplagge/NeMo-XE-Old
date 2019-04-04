@@ -12,9 +12,18 @@
 #include <vector>
 #include <ostream>
 #include <string>
+#include <fstream>
+#include <strstream>
+#include <istream>
+#include <ostream>
+
+
 #include "../neuro/TrueNorthCore.h"
-#include <model_reader/src/tn_neuron_interface.h>
-#include <model_reader/include/tn_parser.hh>
+#include "../../external/model_reader/include/tn_parser.hh"
+#include "../../external/model_reader/src/tn_neuron_interface.h"
+
+
+
 using namespace std;
 
 /**
@@ -53,7 +62,18 @@ private:
 
 
 
-
+class NeMoTypeMap{
+    ifstream typemap_file;
+    vector<char> neuron_type;
+public:
+    NeMoTypeMap(const string &filename){
+        typemap_file.open(filename);
+        neuron_type.reserve(ne_num_cores_in_sim);
+    }
+    ~NeMoTypeMap(){
+        typemap_file.close();
+    }
+};
 
 
 #endif //NEMO2_NEMO_INPUT_H

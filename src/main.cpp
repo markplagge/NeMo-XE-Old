@@ -1,19 +1,22 @@
 #include <ross.h>
 #include <iostream>
 #include <mpi.h>
-#include "neuro/INeuroCoreBase.h"
-#include "include/globals.h"
-#include "neuro/neuron_generic.h"
-#include "include/mapping.h"
+#include "include/nemo_xe.h"
+
 using namespace std;
 int NEURONS_PER_CORE;
+/** @defgroup nemoxe_args
+ * NeMo XE Arguments. Variables and ROSS definitions for command line arguments
+ * @{
+ */
+ static
 
 
 
+/** @} */
 
 // rate for timestamp exponential distribution
 static tw_stime mean = 1.0;
-
 static char run_id[1024] = "undefined";
 int map_fn(tw_lpid gid){
     return (tw_peid) gid/g_tw_nlp;

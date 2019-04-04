@@ -43,8 +43,8 @@ set(nemo_lib_srcs include/globals.h globals.cpp
         ../external/include/concurrentqueue.h
         ../external/include/blockingconcurrentqueue.h
         neuro/LIFCore.cpp neuro/LIFCore.h
-        neuro/CoreLP.cpp include/CoreLP.h  include/nemo_input.h io/tn_parser_wrapper.cpp)
-set(nemo_app_srcs main.cpp include/globals.h globals.cpp)
+        neuro/CoreLP.cpp include/CoreLP.h  include/nemo_input.h io/tn_parser_wrapper.cpp include/nemo_xe.h)
+set(nemo_app_srcs main.cpp include/globals.h globals.cpp info_display.cpp)
 
 ## Add required libraries
 
