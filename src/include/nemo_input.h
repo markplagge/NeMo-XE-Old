@@ -17,7 +17,7 @@
 #include <istream>
 #include <ostream>
 
-
+#include "nemo_xe.h"
 #include "../neuro/TrueNorthCore.h"
 #include "../../external/model_reader/include/tn_parser.hh"
 #include "../../external/model_reader/src/tn_neuron_interface.h"
@@ -68,7 +68,7 @@ class NeMoTypeMap{
 public:
     NeMoTypeMap(const string &filename){
         typemap_file.open(filename);
-        neuron_type.reserve(ne_num_cores_in_sim);
+        neuron_type.reserve(nemo_config.ne_num_cores_in_sim);
     }
     ~NeMoTypeMap(){
         typemap_file.close();

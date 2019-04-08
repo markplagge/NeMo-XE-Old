@@ -6,6 +6,7 @@
 #include "../include/globals.h"
 #include "INeuroCoreBase.h"
 #include "TrueNorthCore.h"
+#include "../NeMoConfig.h"
 
 void setup_neuron_weights(int neuron_weights[], int core_id, int neuron_id){
     for(int i = 0; i < WEIGHTS_PER_TN_NEURON; i ++){
@@ -13,7 +14,7 @@ void setup_neuron_weights(int neuron_weights[], int core_id, int neuron_id){
     }
 }
 
-TrueNorthCore::TrueNorthCore(int coreLocalId, int outputMode)  {
+TrueNorthCore::TrueNorthCore(int coreLocalId) {
     // load up TrueNorth neuron info.
     //for each neuron in the core:
     //load the TN parameters for that neuron
@@ -22,7 +23,7 @@ TrueNorthCore::TrueNorthCore(int coreLocalId, int outputMode)  {
     this->core_local_id = coreLocalId;
     this->last_active_time = 0;
     this->last_leak_time = 0;
-    this->output_mode = outputMode;
+
 
 
 }
@@ -52,7 +53,7 @@ void TrueNorthCore::pre_run(struct tw_lp *lp) {
     }
 #ifdef THREADED_WRITER
 
-    this->spike_output =  (new CoreOutputThread(std::string (SPIKE_OUTPUT_FILENAME)));
+    this->spike_output =  (new CoreOutputThread(std::string (nemo_config.ne_spike_output_filename)));
 #else
     this->spike_output = new CoreOutput(std::string(SPIKE_OUTPUT_FILENAME));
 #endif
@@ -177,7 +178,7 @@ void TrueNorthCore::core_commit(struct tw_bf *bf, nemo_message *m, struct tw_lp 
 #pragma omp parallel for
         for (int i = 0; i < NEURONS_PER_TN_CORE; i++) {
             if (this->fire_status[i]) {
-                if ((this->output_mode == 1 && is_output_neuron(i)) || this->output_mode == 2) {
+                if ((nemo_config.ne_output_mode == 1 && is_output_neuron(i)) || nemo_config.ne_output_mode == 2) {
                     for (int dd = 0; dd < MAX_OUTPUT_PER_TN_NEURON; dd++) {
                         SpikeData d;
                         d.source_core = this->core_local_id;

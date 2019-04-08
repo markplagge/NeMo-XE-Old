@@ -219,13 +219,13 @@ protected:
         sprintf(SPIKE_OUTPUT_FILENAME, "test_case_output");
         core_type_map.push_back(TN);
         core_type_map.push_back(TN);
-        test_core = new TrueNorthCore(0, 0); // core 0 tests;
+        test_core = new TrueNorthCore(0); // core 0 tests;
 //        lp = (tw_lp *) calloc(1, sizeof(tw_lp));
 //        lp->rng = rng_init(1,2);
 //        tw_rand_init_streams(lp,1);
 //        lp->id=0;
 //        lp->gid=0;
-    all_connected_weight_one_core = new TrueNorthCore(0, 0);
+    all_connected_weight_one_core = new TrueNorthCore(0);
     //manually set up the weights for this one
     for(int i = 0; i < NEURONS_PER_TN_CORE; i ++){
         for(int j = 0; j < NEURONS_PER_TN_CORE; j ++) {

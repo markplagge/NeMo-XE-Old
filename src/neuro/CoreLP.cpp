@@ -3,6 +3,7 @@
 //
 
 #include "../include/CoreLP.h"
+#include "../NeMoConfig.h"
 
 void CoreLP::event_trace(nemo_message *m, tw_lp *lp, char *buffer, int *collect_flag) {
 
@@ -25,7 +26,7 @@ void CoreLP::create_core(tw_lp *lp){
     core_type = core_type_map[coreid];
     int coreLocalId = get_core_from_gid(lp->gid);
     if(core_type == TN) {
-        auto ccore = new TrueNorthCore(coreLocalId, 0);
+        auto ccore = new TrueNorthCore(coreLocalId);
         ccore->core_init(lp);
         this->core = ccore;
         this->active = 1;
@@ -36,7 +37,7 @@ void CoreLP::create_core(tw_lp *lp){
     }else{
         std::cout << "Got an invalid core type\n";
     }
-    this->core->output_mode = OUTPUT_MODE ;
+    this->core->output_mode = nemo_config.ne_output_mode;
     this->core->core_init(lp);
 
 }

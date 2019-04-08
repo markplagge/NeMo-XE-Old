@@ -3,6 +3,8 @@
 //
 
 #include "LIFCore.h"
+#include "../NeMoConfig.h"
+
 #define NE_MEMBR(el) this->el[neuron_id]
 
 void LIFCore::core_init(tw_lp *lp) {
@@ -13,8 +15,8 @@ void LIFCore::core_init(tw_lp *lp) {
 
     current_neuro_tick = 0;
     previous_neuro_tick = 0;
-    if(output_mode > 0){
-        this->spike_output = (CoreOutput *) new CoreOutputThread(SPIKE_OUTPUT_FILENAME);
+    if(nemo_output_mode > 0){
+        this->spike_output = (CoreOutput *) new CoreOutputThread(nemo_config.ne_spike_output_filename);
     }
 }
 

@@ -10,6 +10,8 @@
 #include "../src/include/CoreLP.h"
 #include "TrueNorthCoreLogger.h"
 #include "ross_testing_wrapper.h"
+#include "../src/NeMoConfig.h"
+
 std::vector<core_types> core_type_map;
 using namespace std;
 std::vector<nemo_message*> message_trace_elements;
@@ -17,6 +19,7 @@ std::vector<std::string> message_trace_string;
 int OUTPUT_MODE = 2;
 void hb_commit_fun(CoreLP *lpd, tw_bf *bf, nemo_message *m, tw_lp *lp);
 int num_of_input_spikes = 3;
+NeMoConfig &nemo_config = NeMoConfig::get_config();
 void lif_pre_run(CoreLP *s, tw_lp *lp){
     auto cclp = (CoreLP * ) lp->cur_state;
     cclp->get_core()->core_init(lp);
@@ -82,7 +85,7 @@ void lif_core_init_test(CoreLP *core_lp, tw_lp *lp){
     }
     if (output_test){
         delete(core->spike_output);
-        core->spike_output = (CoreOutput *) new CoreOutputThreadTester(SPIKE_OUTPUT_FILENAME);
+        core->spike_output = (CoreOutput *) new CoreOutputThreadTester(nemo_config.ne_spike_output_filename);
     }
 }
 tw_lptype lif_lps[] = {
@@ -222,8 +225,8 @@ protected:
         message_trace_elements.clear();
         core_type_map.push_back(LIF);
         core_type_map.push_back(LIF);
-        SPIKE_OUTPUT_FILENAME = (char*) calloc(128,sizeof(char));
-        sprintf(SPIKE_OUTPUT_FILENAME, "test_case_output");
+        //nemo_config.ne_spike_output_filename = (char*) calloc(128,sizeof(char));
+        sprintf(nemo_config.ne_spike_output_filename, "test_case_output");
     }
     void set_init_ross(int nlp){
         g_tw_nlp = nlp;

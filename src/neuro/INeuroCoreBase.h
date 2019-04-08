@@ -6,7 +6,7 @@
 #define NEMO2_INEUROCOREBASE_H
 #include <ross.h>
 #include "../include/globals.h"
-#include "neuron_generic.h"
+#include "../NeMoConfig.h"
 #include "../include/CoreOutput.h"
 #include <vector>
 
@@ -69,7 +69,7 @@
  */
 struct INeuroCoreBase{
 
-    INeuroCoreBase();
+
 
     virtual void core_init(tw_lp *lp) = 0;
     virtual void pre_run(tw_lp *lp) = 0;
@@ -98,13 +98,8 @@ struct INeuroCoreBase{
     void cleanup_output();
 
     CoreOutput *spike_output;
-    /**
-     * output_mode - sets the spike output mode of this core.
-     * Mode 0 is no output,
-     * Mode 1 is output spikes only
-     * Mode 2 is all spikes output
-     */
-    int output_mode = 2;
+    NeMoConfig &nemo_config = NeMoConfig::get_config();
+
     /**
  * The last time that this core had activity. This refers to any  message.
  */

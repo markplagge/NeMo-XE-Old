@@ -121,7 +121,7 @@ struct TrueNorthCore: public INeuroCoreBase {
     nemo_random_type random_range_rst[NEURONS_PER_TN_CORE];
 
 
-    explicit TrueNorthCore(int coreLocalId, int outputMode);
+    explicit TrueNorthCore(int coreLocalId);
 
     bool is_output_neuron(int neuron_id);
     bool is_self_firing_neuron(int neuron_id);

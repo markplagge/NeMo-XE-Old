@@ -17,9 +17,6 @@
 
 
 
-INeuroCoreBase::INeuroCoreBase()  {
-    
-}
 
 /**
  * Manages a heartbeat message. If this LP has not sent a heartbeat message, send it, and set the
@@ -192,7 +189,7 @@ void INeuroCoreBase::save_spike(nemo_message *m,long dest_core, long neuron_id) 
 }
 
 void INeuroCoreBase::cleanup_output() {
-    if(output_mode)
+    if(nemo_config.ne_output_mode)
         delete(this->spike_output);
 
 }

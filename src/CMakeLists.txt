@@ -35,7 +35,6 @@ endif()
 set(nemo_lib_srcs include/globals.h globals.cpp
         neuro/INeuroCoreBase.h neuro/INeuroCoreBase.cpp
         neuro/TrueNorthCore.h neuro/TrueNorthCore.cpp
-        neuro/neuron_generic.cpp neuro/neuron_generic.h
         include/mapping.h mapping.cpp
         io/CoreOutput.cpp
         include/CoreOutput.h
@@ -43,7 +42,7 @@ set(nemo_lib_srcs include/globals.h globals.cpp
         ../external/include/concurrentqueue.h
         ../external/include/blockingconcurrentqueue.h
         neuro/LIFCore.cpp neuro/LIFCore.h
-        neuro/CoreLP.cpp include/CoreLP.h  include/nemo_input.h io/tn_parser_wrapper.cpp include/nemo_xe.h)
+        neuro/CoreLP.cpp include/CoreLP.h  include/nemo_input.h io/tn_parser_wrapper.cpp include/nemo_xe.h info_display.h)
 set(nemo_app_srcs main.cpp include/globals.h globals.cpp info_display.cpp)
 
 ## Add required libraries
