@@ -15,7 +15,7 @@ void LIFCore::core_init(tw_lp *lp) {
 
     current_neuro_tick = 0;
     previous_neuro_tick = 0;
-    if(nemo_output_mode > 0){
+    if(output_mode > 0){
         this->spike_output = (CoreOutput *) new CoreOutputThread(nemo_config.ne_spike_output_filename);
     }
 }

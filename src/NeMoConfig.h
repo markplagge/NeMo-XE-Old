@@ -2,8 +2,11 @@
 // Created by plaggm on 4/8/19.
 //
 
+
 #ifndef NEMO2_NEMOCONFIG_H
 #define NEMO2_NEMOCONFIG_H
+#include "nemo_build_options.h"
+
 
 /**
  * NeMoXE Configuration Holder Object
@@ -39,7 +42,17 @@ public:
     char *ne_spike_output_filename  = new char[buffer_size]();
     char *ne_core_typemap_filename  = new char[buffer_size]();
     int ne_num_cores_in_sim = 4096;
-    int ne_num_neurons_per_core = 4096;
+
+    //CONSTEXPR WRAPPING FROM DEFINES
+    constexpr static int NEURONS_PER_TN_CORE = DEF_TN_NEURONS_PER_CORE;
+    constexpr static int WEIGHTS_PER_TN_CORE = DEF_WEIGHTS_PER_TN_NEURON;
+    constexpr static int MAX_OUTPUT_PER_TN_NEURON = DEF_MAX_OUTPUT_PER_TN_NEURON;
+    constexpr static bool THREADED_WRITER = static_cast<bool> DEF_THREADED_WRITER;
+    constexpr static int LIF_NEURONS_PER_CORE = DEF_LIF_NEURONS_PER_CORE;
+    constexpr static int LIF_NUM_OUTPUTS =DEF_LIF_NUM_OUTPUTS;
+
+
+
 private:
     NeMoConfig() = default;
     ~NeMoConfig() = default;

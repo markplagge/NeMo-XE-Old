@@ -20,8 +20,10 @@
 /**
  * JITTER(rng) -> macro for adding a jitter value to sent messages.
  */
-#define JITTER_SCALE  1000
-#define JITTER(rng) tw_rand_unif(rng) / JITTER_SCALE
+constexpr int JITTER_SCALE = 1000;
+
+template <typename T>
+constexpr double  JITTER(T rng) { return tw_rand_unif(rng) / JITTER_SCALE;}
 
 //#define JITTER (tw_rand_unif(lp->rng,0,JITTER_SCALE) / 10000)
 
@@ -31,8 +33,8 @@
  * Helper functions and macros for ROSS timing
  * @{
  */
-#define LITTLE_TICK = (double) 1/1000
-#define BIG_TICK = 1
+constexpr double LITTLE_TICK = (double) 1/1000;
+constexpr int BIG_TICK = 1;
 
 
 unsigned long get_neurosynaptic_tick(double now);
@@ -271,7 +273,7 @@ using VectorMatrix = std::vector<std::vector<T>>;
 
 
 //@todo: Move this to a config file that will be set up by CMAKE
-#define THREADED_WRITER 1
+//#define THREADED_WRITER 1
 extern std::vector<core_types> core_type_map;
 
 /** @} */

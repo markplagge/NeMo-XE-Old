@@ -9,11 +9,15 @@ int NEURONS_PER_CORE;
  * NeMo XE Arguments. Variables and ROSS definitions for command line arguments
  * @{
  */
- static
+
+class NeMoXe {
+public:
+    NeMoConfig configuation_state;
+    tw_optdef cli_options;
+    // Defines for static work - replace with metaprogramming once profiling data is done
 
 
-
-/** @} */
+};
 
 // rate for timestamp exponential distribution
 static tw_stime mean = 1.0;

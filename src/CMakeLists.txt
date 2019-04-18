@@ -29,7 +29,13 @@ endif()
 # Special Config options for OMP offload tests
 
 
-
+set(NEMO2_TN_NEURONS_PER_CORE 512 CACHE STRING "Number of TrueNorth neurons per TN core")
+set(NEMO2_TN_WEIGHTS_PER_NERUON 4 "Number of TrueNorth weights each neuron can have")
+set(NEMO2_TN_MAX_NEURON_OUTPUS 1 "Number of connections a truenorth neuron can make")
+option(NEMO2_THREADED_FILE_OUTPUT "Use threading for file IO. Otherwise will use built-in ROSS data handling." ON)
+set(NEMO2_LIF_NEURONS_PER_CORE 256 "Number of LIF neurons per LIF core")
+set(NEMO2_LIF_NUM_OUTPUTS_PER_NEURON 256 "Number of connections a LIf neuron can make")
+configure_file("nemo_build_options.h.in" "nemo_build_options.h")
 
 ## Set up the main project
 set(nemo_lib_srcs include/globals.h globals.cpp
@@ -42,7 +48,8 @@ set(nemo_lib_srcs include/globals.h globals.cpp
         ../external/include/concurrentqueue.h
         ../external/include/blockingconcurrentqueue.h
         neuro/LIFCore.cpp neuro/LIFCore.h
-        neuro/CoreLP.cpp include/CoreLP.h  include/nemo_input.h io/tn_parser_wrapper.cpp include/nemo_xe.h info_display.h)
+        neuro/CoreLP.cpp include/CoreLP.h  include/nemo_input.h io/tn_parser_wrapper.cpp
+        include/nemo_xe.h info_display.h nemo_build_options.h)
 set(nemo_app_srcs main.cpp include/globals.h globals.cpp info_display.cpp)
 
 ## Add required libraries
