@@ -4,3 +4,4 @@
 [submodule "ROSS"]
 	path = external/ROSS
 	url = https://github.com/carothersc/ROSS.git
+	branch = streaming-plugin-dev
