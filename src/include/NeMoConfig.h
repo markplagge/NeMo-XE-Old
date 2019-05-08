@@ -5,7 +5,7 @@
 
 #ifndef NEMO2_NEMOCONFIG_H
 #define NEMO2_NEMOCONFIG_H
-#include "nemo_build_options.h"
+#include "../nemo_build_options.h"
 
 
 /**
@@ -47,7 +47,7 @@ public:
     constexpr static int NEURONS_PER_TN_CORE = DEF_TN_NEURONS_PER_CORE;
     constexpr static int WEIGHTS_PER_TN_CORE = DEF_WEIGHTS_PER_TN_NEURON;
     constexpr static int MAX_OUTPUT_PER_TN_NEURON = DEF_MAX_OUTPUT_PER_TN_NEURON;
-    constexpr static bool THREADED_WRITER = static_cast<bool> DEF_THREADED_WRITER;
+    constexpr static bool THREADED_WRITER = static_cast<bool> (DEF_THREADED_WRITER);
     constexpr static int LIF_NEURONS_PER_CORE = DEF_LIF_NEURONS_PER_CORE;
     constexpr static int LIF_NUM_OUTPUTS =DEF_LIF_NUM_OUTPUTS;
 

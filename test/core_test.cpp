@@ -5,6 +5,7 @@
 #include "TrueNorthCoreLogger.h"
 #include "../src/neuro/TrueNorthCore.h"
 #include "../src/include/CoreLP.h"
+#include "nemo_xe.h"
 
 #include <iostream>
 #include <fstream>

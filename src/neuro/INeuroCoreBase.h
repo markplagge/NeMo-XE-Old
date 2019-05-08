@@ -6,7 +6,7 @@
 #define NEMO2_INEUROCOREBASE_H
 #include <ross.h>
 #include "../include/globals.h"
-#include "../NeMoConfig.h"
+#include "../include/NeMoConfig.h"
 #include "../include/CoreOutput.h"
 #include <vector>
 

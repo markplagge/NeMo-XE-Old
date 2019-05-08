@@ -28,7 +28,7 @@ endif()
 
 # Special Config options for OMP offload tests
 
-
+#primary compile-time options
 set(NEMO2_TN_NEURONS_PER_CORE 512 CACHE STRING "Number of TrueNorth neurons per TN core")
 set(NEMO2_TN_WEIGHTS_PER_NERUON 4 "Number of TrueNorth weights each neuron can have")
 set(NEMO2_TN_MAX_NEURON_OUTPUS 1 "Number of connections a truenorth neuron can make")

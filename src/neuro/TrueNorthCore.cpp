@@ -6,7 +6,8 @@
 #include "../include/globals.h"
 #include "INeuroCoreBase.h"
 #include "TrueNorthCore.h"
-#include "../NeMoConfig.h"
+#include "../include/NeMoConfig.h"
+#include "nemo_xe.h"
 
 void setup_neuron_weights(int neuron_weights[], int core_id, int neuron_id){
     for(int i = 0; i < WEIGHTS_PER_TN_NEURON; i ++){

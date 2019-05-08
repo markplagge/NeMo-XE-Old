@@ -1,0 +1,1 @@
+-DCMAKE_C_COMPILER=/usr/local/bin/mpicc -DCMAKE_CXX_COMPILER=/usr/local/bin/mpicxx -DARCH=x86_64 -DROSS_timing=off -DNEMO_USE_OPENMP=ON -DNEMO_USE_GPU=ON -DNE_OMP_COMPILER=clang -DNE_CUDA_ROOT=/usr/local/cuda

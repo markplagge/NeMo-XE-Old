@@ -10,7 +10,8 @@
 #include "../src/include/CoreLP.h"
 #include "TrueNorthCoreLogger.h"
 #include "ross_testing_wrapper.h"
-#include "../src/NeMoConfig.h"
+#include "../src/include/NeMoConfig.h"
+#include "nemo_xe.h"
 
 std::vector<core_types> core_type_map;
 using namespace std;

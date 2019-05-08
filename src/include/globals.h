@@ -272,29 +272,14 @@ using VectorMatrix = std::vector<std::vector<T>>;
 
 
 
-//@todo: Move this to a config file that will be set up by CMAKE
-//#define THREADED_WRITER 1
-extern std::vector<core_types> core_type_map;
-
 /** @} */
 
 /** @defgroup LIF_Model_Settings LIFModelSettings:
  * Model settings - define the size of arrays, number of outputs per neuron, etc..
  * @{
  */
-// LIF Core settings:
-constexpr int LIF_NEURONS_PER_CORE = 256;
-constexpr int LIF_NUM_OUTPUTS = 256;
 
 /** @} */
-/**
- * @defgroup tn_const TrueNorth Neuron Limitations
- * Contains TrueNorth network constants
- * @{
- */
-constexpr int NEURONS_PER_TN_CORE = 256;
-constexpr int WEIGHTS_PER_TN_NEURON = 4;
-constexpr int MAX_OUTPUT_PER_TN_NEURON = 1;
 /** @} */
 
 #endif //NEMO2_GLOBALS_H

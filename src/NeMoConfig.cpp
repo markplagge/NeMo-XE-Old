@@ -3,7 +3,7 @@
 //
 
 #include "include/globals.h"
-#include "NeMoConfig.h"
+#include "include/NeMoConfig.h"
 
 /*
 

@@ -3,7 +3,7 @@
 //
 
 #include "../include/CoreLP.h"
-#include "../NeMoConfig.h"
+#include "../include/NeMoConfig.h"
 
 void CoreLP::event_trace(nemo_message *m, tw_lp *lp, char *buffer, int *collect_flag) {
 
@@ -23,7 +23,7 @@ void CoreLP::create_core(tw_lp *lp){
     // @TODO: Implement this
     ////
     auto coreid = get_core_from_gid(lp->gid);
-    core_type = core_type_map[coreid];
+    core_type = NeMoXe::core_type_map[coreid];
     int coreLocalId = get_core_from_gid(lp->gid);
     if(core_type == TN) {
         auto ccore = new TrueNorthCore(coreLocalId);

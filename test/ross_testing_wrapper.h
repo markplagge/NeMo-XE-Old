@@ -11,6 +11,8 @@
 #include <core/ross.h>
 #include "../src/include/globals.h"
 #include "../src/include/CoreLP.h"
+#include "nemo_xe.h"
+
 extern std::vector<nemo_message*> message_trace_elements;
 extern std::vector<std::string> message_trace_string;
 

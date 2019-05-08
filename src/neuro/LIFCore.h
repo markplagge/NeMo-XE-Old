@@ -9,8 +9,7 @@
 #include <array>
 #include <string>
 #include "../include/CoreOutput.h"
-
-
+#include "nemo_xe.h"
 
 
 struct LIFCore: public INeuroCoreBase {

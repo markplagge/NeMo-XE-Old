@@ -3,7 +3,8 @@
 //
 
 #include "LIFCore.h"
-#include "../NeMoConfig.h"
+#include "../include/NeMoConfig.h"
+#include "nemo_xe.h"
 
 #define NE_MEMBR(el) this->el[neuron_id]
 

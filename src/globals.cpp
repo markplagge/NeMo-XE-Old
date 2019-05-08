@@ -1,6 +1,6 @@
 
 #include "include/globals.h"
-#include "NeMoConfig.h"
+#include "include/NeMoConfig.h"
 
 static int void_function(void) {
     return 0;

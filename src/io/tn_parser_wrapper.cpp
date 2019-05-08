@@ -3,6 +3,7 @@
 
 
 #include "../include/nemo_input.h"
+#include "nemo_xe.h"
 
 void TNJSWrapper::set_neuron_in_core(TrueNorthCore& core, unsigned int neuron_id){
     //create a neuron on the stack

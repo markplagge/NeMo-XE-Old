@@ -3,6 +3,7 @@
 //
 
 #include "TrueNorthCoreLogger.h"
+#include "nemo_xe.h"
 
 
 //core event trace
