@@ -21,7 +21,6 @@
  * JITTER(rng) -> macro for adding a jitter value to sent messages.
  */
 constexpr int JITTER_SCALE = 1000;
-
 template <typename T>
 constexpr double  JITTER(T rng) { return tw_rand_unif(rng) / JITTER_SCALE;}
 

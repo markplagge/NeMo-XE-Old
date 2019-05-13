@@ -13,7 +13,7 @@
 #define AXONS_IN_CORE 256
 #define NEURONS_IN_CORE 256
 #define NUM_NEURON_WEIGHTS 4
-
+#include "utils.hh"
 using tw_stime=double;
 //using tw_lpid=long;
 //using stat_type=long;

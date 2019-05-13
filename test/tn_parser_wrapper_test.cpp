@@ -6,7 +6,7 @@
 #include <core/ross.h>
 #include "../src/include/CoreLP.h"
 
-#include "../src/include/nemo_xe.h"
+#include "../src/include/NeMoXe.h"
 
 
 TEST(load_json, neuron_input_tests){

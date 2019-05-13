@@ -8,7 +8,8 @@
 #include "../include/globals.h"
 #include "../include/NeMoConfig.h"
 #include "../include/CoreOutput.h"
-#include <vector>
+
+#include <include/tn_parser.hh>
 
 #define RNG_START(lp) auto rng_count = lp->rng->count
 #define RNG_END(lp)  msg->random_call_count = (lp->rng->count - rng_count)

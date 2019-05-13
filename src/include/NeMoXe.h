@@ -2,19 +2,9 @@
 // Created by plaggm on 4/3/19.
 //
 
-#ifndef NEMO2_NEMO_XE_H
-#define NEMO2_NEMO_XE_H
-// LIF Core settings:
-constexpr int LIF_NEURONS_PER_CORE = 256;
-constexpr int LIF_NUM_OUTPUTS = 256;
-/**
- * @defgroup tn_const TrueNorth Neuron Limitations
- * Contains TrueNorth network constants
- * @{
- */
-constexpr int NEURONS_PER_TN_CORE = 256;
-constexpr int WEIGHTS_PER_TN_NEURON = 4;
-constexpr int MAX_OUTPUT_PER_TN_NEURON = 1;
+#ifndef NEMO2_NEMOXE_H
+#define NEMO2_NEMOXE_H
+
 
 #include "CoreLP.h"
 #include <ross.h>
@@ -71,4 +61,4 @@ public:
 //@todo: Move this to a config file that will be set up by CMAKE
 //#define THREADED_WRITER 1
 extern std::vector<core_types> core_type_map;
-#endif //NEMO2_NEMO_XE_H
+#endif //NEMO2_NEMOXE_H

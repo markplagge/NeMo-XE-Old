@@ -11,6 +11,7 @@
 
 #include "INeuroCoreBase.h"
 
+#include "../include/NeMoXe.h"
 /**
  * TrueNorthCore - A neurosynaptic core containing TrueNorth neurons.
  * @addtogroup nemo_cores @{
@@ -246,7 +247,6 @@ private:
 
 };
 /** @} */
-#include "INeuroCoreBase.h"
-#include "nemo_xe.h"
+
 
 #endif //NEMO2_TRUENORTHCORE_H

@@ -17,9 +17,10 @@
 #include <istream>
 #include <ostream>
 
-#include "nemo_xe.h"
+#include "NeMoXe.h"
 #include "../neuro/TrueNorthCore.h"
-#include "../../external/model_reader/include/tn_parser.hh"
+#include <exter
+//#include "../../external/model_reader/include/tn_parser.hh"
 #include "../../external/model_reader/src/tn_neuron_interface.h"
 
 

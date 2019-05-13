@@ -6,6 +6,30 @@
 #ifndef NEMO2_NEMOCONFIG_H
 #define NEMO2_NEMOCONFIG_H
 #include "../nemo_build_options.h"
+///**
+// * @defgroup nparams Neuron Model Specific Parameters
+// * These are compile time options for neuron model configurations
+// * @{
+// */
+///**@defgroup lifparms LIF model parameters
+// * Specific LIF neuron model parameters.
+// * @{
+// */
+//constexpr int LIF_NEURONS_PER_CORE = DEF_LIF_NEURONS_PER_CORE;
+//constexpr int LIF_NUM_OUTPUTS = DEF_LIF_NUM_OUTPUTS;
+///** @} */
+//
+///**
+// * @defgroup tnparams TrueNorth Neuron Parameters
+// * Contains TrueNorth network constants
+// * @{
+// */
+//constexpr int NEURONS_PER_TN_CORE = DEF_LIF_NEURONS_PER_CORE;
+//constexpr int WEIGHTS_PER_TN_NEURON = DEF_TN_WEIGHTS_PER_NEURON;
+//constexpr int MAX_OUTPUT_PER_TN_NEURON = DEF_TN_MAX_NEURON_OUTPUTS;
+///** @} */
+///** @} */
+
 
 
 /**
@@ -42,14 +66,9 @@ public:
     char *ne_spike_output_filename  = new char[buffer_size]();
     char *ne_core_typemap_filename  = new char[buffer_size]();
     int ne_num_cores_in_sim = 4096;
+    static constexpr auto build_opts = nemo_build_options;
 
-    //CONSTEXPR WRAPPING FROM DEFINES
-    constexpr static int NEURONS_PER_TN_CORE = DEF_TN_NEURONS_PER_CORE;
-    constexpr static int WEIGHTS_PER_TN_CORE = DEF_WEIGHTS_PER_TN_NEURON;
-    constexpr static int MAX_OUTPUT_PER_TN_NEURON = DEF_MAX_OUTPUT_PER_TN_NEURON;
-    constexpr static bool THREADED_WRITER = static_cast<bool> (DEF_THREADED_WRITER);
-    constexpr static int LIF_NEURONS_PER_CORE = DEF_LIF_NEURONS_PER_CORE;
-    constexpr static int LIF_NUM_OUTPUTS =DEF_LIF_NUM_OUTPUTS;
+
 
 
 

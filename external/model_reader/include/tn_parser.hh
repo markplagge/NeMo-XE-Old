@@ -10,7 +10,7 @@
 //#endif
 //#endif
 
-#include <rapidjson/document.h>
+
 #include <rapidjson/prettywriter.h>
 #include <rapidjson/filereadstream.h>
 #include <rapidjson/istreamwrapper.h>
@@ -28,7 +28,7 @@
 #include <sstream>
 #include <vector>
 //#include "json_dto.hh"
-#include <ross.h>
+//#include <ross.h>
 #include "../src/utils.hh"
 #include <regex>
 #include "../extern/json.hpp"

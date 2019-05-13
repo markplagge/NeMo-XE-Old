@@ -3,6 +3,8 @@ include(ExternalProject)
 set(CMAKE_CXX_STANDARD 14)
 set(RJSON_PATH CACHE PATH "./extern/rapidjson" )
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMake)
+#set(ross_srcs ${CMAKE_SOURCE_DIR}/external/ROSS/core)
+
 ## Configure RapidJSON
 #set(RAPIDJSON_USE_SSE2 OFF CACHE BOOL "Use SSE2 for RapidJSON")
 #set(RAPIDJSON_USE_SSE42 ON CACHE BOOL "Use SSE4 for RapidJSON")
@@ -81,8 +83,8 @@ find_package(RapidJSON PATHS RJSON_PATH CONFIG)
 find_package(RapidJSON)
 if(RapidJSON_FOUND)
     message("Found RapidJSON through macro")
-    message("RapidJSON Path: ${RapidJSON_INCLUDE_DIRS}")
-    message("RJSON custom flags: ${RapidJSON_CXX_FLAGS}")
+    message("RapidJSON Path: ${RAPIDJSON_INCLUDE_DIRS}")
+    message("RJSON custom flags: ${RAPIDJSON_CXX_FLAGS}")
     set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} ${RapidJSON_CXX_FLAGS})
 else()
     set(RapidJSON_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/extern/rapidjson)
@@ -105,13 +107,15 @@ ADD_LIBRARY(ModelReaderLib ${lib_srcs})
 ADD_EXECUTABLE(ModelReaderBin ${reader_srcs})
 
 target_include_directories(ModelReaderLib PUBLIC
-        ${RapidJSON_INCLUDE_DIRS}
+        ${RAPIDJSON_INCLUDE_DIRS}
+
         )
 set_target_properties(ModelReaderBin
         PROPERTIES
         LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 
-target_link_libraries(ModelReaderLib m)
+target_link_libraries(ModelReaderLib m ROSS)
 target_link_libraries(ModelReaderBin ModelReaderLib)
+
 

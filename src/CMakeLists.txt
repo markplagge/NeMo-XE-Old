@@ -7,11 +7,36 @@ cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 
 include_directories(${ROSS_SOURCE_DIR} ${ROSS_BINARY_DIR})
 
-message(${EXTERNAL_INCLUDE})
+message(STATUS "${EXTERNAL_INCLUDE} -- ${RAPIDJSON_INCLUDE_DIR}")
+#get_target_property(ModelReader RAPIDJSON_INCLUDE_DIR RAPIDJSON_INCLUDE_DIR)
+include_directories(${EXTERNAL_INCLUDE} ${EXTERNAL_INCLUDE}/include ${RAPIDJSON_INCLUDE_DIR})
+## Add script to handle generation of config header for development
+# uses python
 
-include_directories(${EXTERNAL_INCLUDE} ${EXTERNAL_INCLUDE}/include)
+#add_custom_command(OUTPUT $CMAKE_CURRENT_SOURCE_DIR/test.h
+#        COMMAND python3 $CMAKE_CURRENT_SOURCE_DIR/nemo_build_options.h.in
+#        COMMENT "Updating in-source build options file")
+INCLUDE(FindPython3)
 
+set(CF_ARGS "${CMAKE_CURRENT_SOURCE_DIR}/gen_build_opts.py ${CMAKE_CURRENT_SOURCE_DIR}  test_out.h")
+
+
+EXECUTE_PROCESS ( COMMAND ${Python3_EXECUTABLE} -c "from distutils.sysconfig import get_python_inc; print(get_python_inc())" OUTPUT_VARIABLE PYTHON_INCLUDE_DIR OUTPUT_STRIP_TRAILING_WHITESPACE RESULT_VARIABLE PY_RES)
+
+MESSAGE(STATUS "Python interpreter: ${Python3_EXECUTABLE}")
+MESSAGE(STATUS "Python interpreter verison: ${PYTHON_VERSION}")
+MESSAGE(STATUS "Python result ${PY_RES}")
+
+
+execute_process(
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/gen_build_opts.py ${CMAKE_CURRENT_SOURCE_DIR} nemo_build_options.h
+        #WORKING_DIRECTORY {$CMAKE_CURRENT_SOURCE_DIR}
+        OUTPUT_VARIABLE CONFIG_OUT
+        RESULT_VARIABLE CONFIG_RES
+)
 message(" --- ROSS AT ${ROSS_SOURCE_DIR}")
+
+
 ## NEMO COMPILE-TIME CONFIG SETTINGS ##
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 set(CMAKE_CXX_STANDARD 14)
@@ -35,7 +60,8 @@ set(NEMO2_TN_MAX_NEURON_OUTPUS 1 "Number of connections a truenorth neuron can m
 option(NEMO2_THREADED_FILE_OUTPUT "Use threading for file IO. Otherwise will use built-in ROSS data handling." ON)
 set(NEMO2_LIF_NEURONS_PER_CORE 256 "Number of LIF neurons per LIF core")
 set(NEMO2_LIF_NUM_OUTPUTS_PER_NEURON 256 "Number of connections a LIf neuron can make")
-configure_file("nemo_build_options.h.in" "nemo_build_options.h")
+
+configure_file("nemo_build_options_template.in" "nemo_build_options.h")
 
 ## Set up the main project
 set(nemo_lib_srcs include/globals.h globals.cpp
@@ -49,15 +75,18 @@ set(nemo_lib_srcs include/globals.h globals.cpp
         ../external/include/blockingconcurrentqueue.h
         neuro/LIFCore.cpp neuro/LIFCore.h
         neuro/CoreLP.cpp include/CoreLP.h  include/nemo_input.h io/tn_parser_wrapper.cpp
-        include/nemo_xe.h info_display.h nemo_build_options.h)
+        include/NeMoXe.h info_display.h nemo_build_options.h)
 set(nemo_app_srcs main.cpp include/globals.h globals.cpp info_display.cpp)
 
 ## Add required libraries
 
 add_library(nemo2_lib STATIC ${nemo_lib_srcs})
 add_executable(nemo2 ${nemo_app_srcs})
+
+
+
 ##Main NeMo2_lib Required Libraries: ########3
-list(APPEND LBS  ROSS  )
+list(APPEND LBS  ROSS ModelReader  )
 target_compile_features(nemo2_lib PRIVATE cxx_std_14)
 target_compile_features(nemo2 PRIVATE cxx_std_14)
 

@@ -16,3 +16,14 @@
 #cmakedefine DEF_LIF_NUM_OUTPUTS @NEMO2_LIF_NUM_OUTPUTS_PER_NEURON@
 
 #endif //NEMO2_NEMO_BUILD_OPTIONS_H
+
+ // Build Options Structure 
+ struct NeMoBuildOptions {
+			constexpr static int TN_NEURONS_PER_CORE = DEF_TN_NEURONS_PER_CORE;
+	constexpr static int TN_WEIGHTS_PER_NEURON = DEF_TN_WEIGHTS_PER_NEURON;
+	constexpr static int TN_MAX_NEURON_OUTPUTS = DEF_TN_MAX_NEURON_OUTPUTS;
+			constexpr static int LIF_NEURONS_PER_CORE = DEF_LIF_NEURONS_PER_CORE;
+	constexpr static int LIF_NUM_OUTPUTS = DEF_LIF_NUM_OUTPUTS;
+		constexpr static bool THREADED_WRITER = static_cast<bool>(DEF_THREADED_WRITER);
+};
+ inline constexpr NeMoBuildOptions nemo_build_options;

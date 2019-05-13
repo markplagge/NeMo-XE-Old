@@ -1,7 +1,7 @@
 #include <ross.h>
 #include <iostream>
 #include <mpi.h>
-#include "include/nemo_xe.h"
+#include "include/NeMoXe.h"
 
 using namespace std;
 
