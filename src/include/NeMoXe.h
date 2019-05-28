@@ -4,7 +4,7 @@
 
 #ifndef NEMO2_NEMOXE_H
 #define NEMO2_NEMOXE_H
-
+#define NEMO_BUILD 1
 
 #include "CoreLP.h"
 #include <ross.h>
@@ -22,27 +22,27 @@ public:
     NeMoConfig configuation_state;
     tw_optdef cli_options;
     // Defines for static work - replace with metaprogramming once profiling data is done
-    static constexpr int map_fn(tw_lpid gid){
-        return (tw_peid) gid/g_tw_nlp;
+    static  int map_fn(tw_lpid gid){
+        return   (tw_peid) gid/g_tw_nlp ;
     }
-    void nemo_post_lp_init(tw_pe *pe){
+    static void nemo_post_lp_init(tw_pe *pe){
         cout << "Init PE\n";
     }
-    void nemo_pre_lp_init(tw_pe *pe){
+    static void nemo_pre_lp_init(tw_pe *pe){
         cout << "Pre LP init\n";
     }
-    void nemo_pe_gvt_f(tw_pe *pe){
+    static void nemo_pe_gvt_f(tw_pe *pe){
         cout <<"at GVT\n";
     }
 
-    tw_petype nemo_pe = {
-            (pe_init_f) nemo_pre_lp_init,
-            (pe_init_f) nemo_post_lp_init,
-            (pe_gvt_f) nemo_pe_gvt_f,
+    tw_petype nemo_pe[4] = {
+            (pe_init_f) NeMoXe::nemo_pre_lp_init,
+            (pe_init_f) NeMoXe::nemo_post_lp_init,
+            (pe_gvt_f) NeMoXe::nemo_pe_gvt_f,
             0
     };
 
-    tw_lptype mylps[] = {
+    tw_lptype mylps[9] = {
             {(init_f) CoreLP::core_init,
 
                     (pre_run_f) CoreLP::pre_run,
@@ -61,4 +61,5 @@ public:
 //@todo: Move this to a config file that will be set up by CMAKE
 //#define THREADED_WRITER 1
 extern std::vector<core_types> core_type_map;
+NeMoConfig &nemo_config = NeMoConfig::get_config();
 #endif //NEMO2_NEMOXE_H

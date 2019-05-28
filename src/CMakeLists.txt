@@ -18,6 +18,8 @@ include_directories(${EXTERNAL_INCLUDE} ${EXTERNAL_INCLUDE}/include ${RAPIDJSON_
 #        COMMENT "Updating in-source build options file")
 INCLUDE(FindPython3)
 
+find_package(RapidJSON REQUIRED)
+
 set(CF_ARGS "${CMAKE_CURRENT_SOURCE_DIR}/gen_build_opts.py ${CMAKE_CURRENT_SOURCE_DIR}  test_out.h")
 
 
@@ -81,12 +83,15 @@ set(nemo_app_srcs main.cpp include/globals.h globals.cpp info_display.cpp)
 ## Add required libraries
 
 add_library(nemo2_lib STATIC ${nemo_lib_srcs})
+include_directories(${CMAKE_SOURCE_DIR}/external/model_reader ${CMAKE_SOURCE_DIR}/external/model_reader/include)
+
 add_executable(nemo2 ${nemo_app_srcs})
 
 
 
+
 ##Main NeMo2_lib Required Libraries: ########3
-list(APPEND LBS  ROSS ModelReader  )
+list(APPEND LBS  ROSS ModelReaderLib  )
 target_compile_features(nemo2_lib PRIVATE cxx_std_14)
 target_compile_features(nemo2 PRIVATE cxx_std_14)
 
@@ -109,7 +114,9 @@ endif()
 
 target_link_libraries(nemo2_lib ${LBS})
 target_link_libraries(nemo2 ROSS nemo2_lib)
+target_include_directories(nemo2 PUBLIC ${CMAKE_SOURCE_DIR}/external/model_reader/include)
 #target_link_libraries(nemo2 PRIVATE OpenMP::OpenMP_CXX)
+#target_include_directories(nemo2_lib PUBLIC ModelReaderLib)
 target_include_directories(nemo2 PUBLIC ${EXTERNAL_INCLUDE} ${EXTERNAL_INCLUDE}/ROSS})
 
 ## configure the GPU Offload options

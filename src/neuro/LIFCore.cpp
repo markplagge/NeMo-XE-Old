@@ -4,7 +4,7 @@
 
 #include "LIFCore.h"
 #include "../include/NeMoConfig.h"
-#include "nemo_xe.h"
+#include "../include/NeMoXe.h"
 
 #define NE_MEMBR(el) this->el[neuron_id]
 
@@ -16,7 +16,7 @@ void LIFCore::core_init(tw_lp *lp) {
 
     current_neuro_tick = 0;
     previous_neuro_tick = 0;
-    if(output_mode > 0){
+    if(output_mode){
         this->spike_output = (CoreOutput *) new CoreOutputThread(nemo_config.ne_spike_output_filename);
     }
 }
@@ -43,7 +43,7 @@ void LIFCore::forward_event(tw_bf *bf, nemo_message *m, tw_lp *lp) {
         // integreate //
         auto source_axon = m->dest_axon;
 #pragma omp parallel for simd
-        for(int neuron_id =0; neuron_id< LIF_NEURONS_PER_CORE; neuron_id ++){
+        for(int neuron_id =0; neuron_id< NeMoBuildOptions::LIF_NEURONS_PER_CORE; neuron_id ++){
             NE_MEMBR(membrane_pots) += NE_MEMBR(weights)[source_axon];
         }
     }else if (m->message_type == HEARTBEAT){ // leak, reset, and fire
@@ -58,13 +58,13 @@ void LIFCore::forward_event(tw_bf *bf, nemo_message *m, tw_lp *lp) {
 #pragma omp parallel for
         for(int lt = leak_needed_count; lt > 0; lt --){
 #pragma omp parallel for simd
-            for(int neuron_id =0; neuron_id < LIF_NEURONS_PER_CORE; neuron_id ++){
+            for(int neuron_id =0; neuron_id < NeMoBuildOptions::LIF_NEURONS_PER_CORE; neuron_id ++){
                 NE_MEMBR(membrane_pots) += NE_MEMBR(leak_values);
             }
         }
         //fire detect and reset funct
 #pragma omp  parallel for
-        for(int neuron_id = 0; neuron_id < LIF_NEURONS_PER_CORE; neuron_id ++){
+        for(int neuron_id = 0; neuron_id < NeMoBuildOptions::LIF_NEURONS_PER_CORE; neuron_id ++){
             if(NE_MEMBR(membrane_pots) >= NE_MEMBR(thresholds)) {
                 NE_MEMBR(fire_status) = true;
                 NE_MEMBR(membrane_pots) = 0;
@@ -84,10 +84,10 @@ void LIFCore::reverse_event(tw_bf *bf, nemo_message *m, tw_lp *lp) {
 void LIFCore::core_commit(tw_bf *bf, nemo_message *m, tw_lp *lp) {
     RNG_START(lp);
     if(m->message_type == HEARTBEAT){
-        for(int neuron_id = 0; neuron_id < LIF_NEURONS_PER_CORE; neuron_id ++){
+        for(int neuron_id = 0; neuron_id < NeMoBuildOptions::LIF_NEURONS_PER_CORE; neuron_id ++){
             if(NE_MEMBR(fire_status)){
                 bf->c4 = 1;
-                for(int dv = 0; dv < LIF_NUM_OUTPUTS; dv ++){
+                for(int dv = 0; dv < NeMoBuildOptions::LIF_NUM_OUTPUTS; dv ++){
                     tw_event *e = tw_event_new(get_gid_from_core_local(NE_MEMBR(destination_cores)[dv],NE_MEMBR(destination_axons)[dv]),get_next_neurosynaptic_tick(tw_now(lp)),lp);
                     auto *msg = (nemo_message *) tw_event_data(e);
                     msg->intended_neuro_tick = current_neuro_tick;//get_next_neurosynaptic_tick(tw_now(lp));

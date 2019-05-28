@@ -89,11 +89,11 @@ public:
  */
 extern NeMoConfig &nemo_config;
 
-#include <stdint.h>
-#include <type_traits>
-#include <string>
-#include <stdarg.h>  // For va_start, etc.
-#include <memory>    // For std::unique_ptr
-#include <vector>
+//#include <stdint.h>
+//#include <type_traits>
+//#include <string>
+//#include <stdarg.h>  // For va_start, etc.
+//#include <memory>    // For std::unique_ptr
+//#include <vector>
 
 #endif //NEMO2_NEMOCONFIG_H

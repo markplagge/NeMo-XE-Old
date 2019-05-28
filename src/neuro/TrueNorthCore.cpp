@@ -56,7 +56,7 @@ void TrueNorthCore::pre_run(struct tw_lp *lp) {
 
     this->spike_output =  (new CoreOutputThread(std::string (nemo_config.ne_spike_output_filename)));
 #else
-    this->spike_output = new CoreOutput(std::string(SPIKE_OUTPUT_FILENAME));
+    this->spike_output = new CoreOutput(std::string(nemo_config.ne_spike_output_filename)); //SPIKE_OUTPUT_FILENAME));
 #endif
 }
 

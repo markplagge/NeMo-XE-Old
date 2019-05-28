@@ -10,12 +10,14 @@
 //#endif
 //#endif
 
-
+#include <rapidjson/rapidjson.h>
 #include <rapidjson/prettywriter.h>
 #include <rapidjson/filereadstream.h>
 #include <rapidjson/istreamwrapper.h>
 #include <rapidjson/error/en.h>
 #include <rapidjson/error/error.h>
+#include <rapidjson/document.h>
+
 
 //#define RAPIDJSON_PARSE_DEFAULT_FLAGS KParseCommentFlags
 #include <memory>
@@ -56,6 +58,7 @@ using namespace std;
 #define NUM_NEURON_WEIGHTS 4
 
 typedef enum OUT_MODE_E {
+    TN_NO_OUT = 0,
     TN_OUT_CSV = 1,
     TN_OUT_BIN = 2,
     TN_OUT_LUA = 4,

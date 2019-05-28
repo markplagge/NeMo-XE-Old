@@ -25,17 +25,18 @@ struct LIFCore: public INeuroCoreBase {
     void core_finish(tw_lp *lp)override ;
 
 
-    void create_lif_neuron(nemo_id_type neuron_id, std::array<int,LIF_NEURONS_PER_CORE> weights, std::array <int,LIF_NUM_OUTPUTS> destination_cores,
-                           std::array<int, LIF_NEURONS_PER_CORE> destination_axons, int leak, int threshold);
+    void create_lif_neuron(nemo_id_type neuron_id, std::array<int,NeMoBuildOptions::LIF_NEURONS_PER_CORE> weights,
+            std::array <int,NeMoBuildOptions::LIF_NUM_OUTPUTS> destination_cores,
+            std::array<int, NeMoBuildOptions::LIF_NEURONS_PER_CORE> destination_axons, int leak, int threshold);
 
     void manage_neurosynaptic_tick(tw_bf *bf, nemo_message *m, tw_lp *lp);
-    Matrix <int,LIF_NEURONS_PER_CORE,LIF_NEURONS_PER_CORE> weights;
-    std::array<int,LIF_NEURONS_PER_CORE> membrane_pots;
-    Matrix <int,LIF_NEURONS_PER_CORE,LIF_NUM_OUTPUTS> destination_cores;
-    Matrix <int,LIF_NEURONS_PER_CORE,LIF_NUM_OUTPUTS> destination_axons;
-    std::array<int,LIF_NEURONS_PER_CORE> leak_values;
-    std::array<int,LIF_NEURONS_PER_CORE> thresholds;
-    std::array<bool,LIF_NEURONS_PER_CORE> fire_status;
+    Matrix <int,NeMoBuildOptions::LIF_NEURONS_PER_CORE,NeMoBuildOptions::LIF_NEURONS_PER_CORE> weights;
+    std::array<int,NeMoBuildOptions::LIF_NEURONS_PER_CORE> membrane_pots;
+    Matrix <int,NeMoBuildOptions::LIF_NEURONS_PER_CORE,NeMoBuildOptions::LIF_NUM_OUTPUTS> destination_cores;
+    Matrix <int,NeMoBuildOptions::LIF_NEURONS_PER_CORE,NeMoBuildOptions::LIF_NUM_OUTPUTS> destination_axons;
+    std::array<int,NeMoBuildOptions::LIF_NEURONS_PER_CORE> leak_values;
+    std::array<int,NeMoBuildOptions::LIF_NEURONS_PER_CORE> thresholds;
+    std::array<bool,NeMoBuildOptions::LIF_NEURONS_PER_CORE> fire_status;
 
 
 

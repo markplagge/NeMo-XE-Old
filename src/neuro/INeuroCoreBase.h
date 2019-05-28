@@ -8,7 +8,7 @@
 #include "../include/globals.h"
 #include "../include/NeMoConfig.h"
 #include "../include/CoreOutput.h"
-
+#define NEMO_BUILD 1
 #include <include/tn_parser.hh>
 
 #define RNG_START(lp) auto rng_count = lp->rng->count

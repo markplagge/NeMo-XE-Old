@@ -16,6 +16,7 @@
 std::string load_file_into_memory(std::string filename);
 bool replace(std::string& str, const std::string& from, const std::string& to);
 //std::string regex_full_core;
+#ifndef NEMO_BUILD
 #ifndef tw_stime
 
 using tw_stime = double;
@@ -26,5 +27,6 @@ using random_type = int;
 using id_type =int;
 using tw_lpid = long;
 
+#endif
 #endif
 #endif //SUPERNEMO_UTILS_HH

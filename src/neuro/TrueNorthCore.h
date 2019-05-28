@@ -10,8 +10,14 @@
 #define NEMO2_TRUENORTHCORE_H
 
 #include "INeuroCoreBase.h"
-
 #include "../include/NeMoXe.h"
+//using NeMoBuildOptions::TN_NEURONS_PER_CORE as NEURONS_PER_TN_CORE;
+#define NEURONS_PER_TN_CORE NeMoBuildOptions::TN_NEURONS_PER_CORE
+#define MAX_OUTPUT_PER_TN_NEURON NeMoBuildOptions::TN_MAX_NEURON_OUTPUTS
+#define WEIGHTS_PER_TN_NEURON NeMoBuildOptions::TN_WEIGHTS_PER_NEURON
+
+
+
 /**
  * TrueNorthCore - A neurosynaptic core containing TrueNorth neurons.
  * @addtogroup nemo_cores @{
